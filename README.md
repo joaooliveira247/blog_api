@@ -8,4 +8,11 @@
 
 ## 📜 Documentation:
 
+<details>
+    <summary><code>Database Diagram</code></summary>
+
+<img src="https://i.imgur.com/tbPMHtG.png">
+
+</details>
+
 ## 🐍 Usage libraries:
