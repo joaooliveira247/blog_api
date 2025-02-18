@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import String, TEXT
-from blog_api.models.base import BaseModel
+from blog_api.contrib import BaseModel
 
 
 class UserModel(BaseModel):
