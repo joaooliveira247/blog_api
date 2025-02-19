@@ -11,3 +11,8 @@ fake: Faker = Faker()
 async def mock_session() -> AsyncGenerator[AsyncSession, None]:
     session = AsyncMock(spec=AsyncSession)
     yield session
+
+
+@fixture
+def password() -> str:
+    return fake.password()
