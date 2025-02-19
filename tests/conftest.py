@@ -4,6 +4,8 @@ from uuid import UUID, uuid4
 from unittest.mock import AsyncMock
 from sqlalchemy.ext.asyncio import AsyncSession
 from blog_api.core.security import gen_hash
+from blog_api.models.users import UserModel
+from tests.factories import single_user_data
 from faker import Faker
 
 fake: Faker = Faker()
@@ -30,3 +32,8 @@ def hashed_password(password: str) -> str:
 @fixture
 def user_id() -> UUID:
     return uuid4()
+
+
+@fixture
+def mock_user(hashed_password: str) -> UserModel:
+    return UserModel(**single_user_data(), password=hashed_password)
