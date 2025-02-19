@@ -1,4 +1,5 @@
 from blog_api.core.security import gen_hash
+from pytest import raises
 
 
 def test_gen_hash_success(password: str):
@@ -6,3 +7,11 @@ def test_gen_hash_success(password: str):
 
     assert len(hash_passwd) == 60
     assert password != hash_passwd
+
+
+def test_gen_hash_raise_value_error():
+    with raises(ValueError) as e:
+        gen_hash(None)
+
+    assert str(e.value) == "password must be a string"
+    assert isinstance(e.value, ValueError)
