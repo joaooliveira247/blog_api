@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import sessionmaker
-from config import settings
+from blog_api.core.config import settings
 from typing import AsyncGenerator
 
 engine: AsyncEngine = create_async_engine(settings.postgres_dsn, expire_on_commit=False)
