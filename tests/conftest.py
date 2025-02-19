@@ -1,5 +1,6 @@
 from typing import AsyncGenerator
 from pytest import fixture
+from uuid import UUID, uuid4
 from unittest.mock import AsyncMock
 from sqlalchemy.ext.asyncio import AsyncSession
 from blog_api.core.security import gen_hash
@@ -24,3 +25,8 @@ def hashed_password(password: str) -> str:
     hash_passwd = gen_hash(password)
 
     return hash_passwd
+
+
+@fixture
+def user_id() -> UUID:
+    return uuid4()
