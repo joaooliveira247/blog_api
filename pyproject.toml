@@ -14,7 +14,7 @@ dependencies = [
     "pydantic-settings>=2.7.1",
     "pytest>=8.3.4",
     "pytest-asyncio>=0.25.3",
-    "sqlalchemy>=2.0.38",
+    "sqlalchemy[mypy]>=2.0.38",
 ]
 
 [tool.pytest.ini_options]
