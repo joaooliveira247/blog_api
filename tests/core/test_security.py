@@ -30,3 +30,8 @@ def test_check_password_raise_unknow_hash_error(password: str):
         "blog_api.core.security.pwd_context.verify", side_effect=UnknownHashError
     ):
         assert check_password(password, "abcd") is False
+
+
+def test_check_password_raise_exception(password: str):
+    with patch("blog_api.core.security.pwd_context.verify", side_effect=Exception):
+        assert check_password(password, "1234") is False
