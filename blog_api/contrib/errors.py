@@ -1,19 +1,19 @@
-class CustomError(Exception): ...
+class CustomError(Exception):
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
 
 
 class DatabaseError(CustomError):
     def __init__(self):
-        self.message: str = "Database integrity error"
-        super().__init__()
+        super().__init__("Database integrity error")
 
 
 class UnableCreateEntity(CustomError):
     def __init__(self):
-        self.message: str = "Unable Create Entity: Field value already exists"
-        super().__init__()
+        super().__init__("Unable Create Entity: Field value already exists")
 
 
 class GenericError(CustomError):
     def __init__(self):
-        self.message: str = "Generic Error"
-        super().__init__()
+        super().__init__("Generic Error")
