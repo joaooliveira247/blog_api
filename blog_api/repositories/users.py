@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import OperationalError, IntegrityError
 from blog_api.models.users import UserModel
-from blog_api.contrib import DatabaseError, UnableCreateEntity
+from blog_api.contrib import DatabaseError, UnableCreateEntity, GenericError
 
 
 class UsersRepository:
@@ -21,4 +21,4 @@ class UsersRepository:
             raise UnableCreateEntity
         except Exception:
             await self.db.rollback()
-            raise
+            raise GenericError
