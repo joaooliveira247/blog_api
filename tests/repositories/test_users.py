@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError, OperationalError
 from blog_api.repositories.users import UsersRepository
 from blog_api.models.users import UserModel
-from blog_api.contrib.errors import UnableCreateEntity, DatabaseError
+from blog_api.contrib.errors import UnableCreateEntity, DatabaseError, GenericError
 from pytest import raises
 
 
@@ -61,4 +61,22 @@ async def test_create_user_raise_database_error(
 
     mock_session.add.assert_called_once_with(mock_user)
     mock_session.commit.assert_called_once()
+    mock_session.rollback.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_create_user_raise_generic_error(
+    mock_session: AsyncSession, mock_user: UserModel
+):
+
+    repository = UsersRepository(mock_session)
+
+    mock_session.commit = AsyncMock(side_effect=Exception())
+    mock_session.rollback = AsyncMock()
+
+    with raises(GenericError, match="Generic Error"):
+        await repository.create(mock_user)
+
+    mock_session.add.assert_called_once_with(mock_user)
+    mock_session.commit.assert_awaited_once()
     mock_session.rollback.assert_awaited_once()
