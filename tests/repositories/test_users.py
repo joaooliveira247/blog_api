@@ -115,3 +115,18 @@ async def test_get_users_return_success_but_empty(
         mock_get_users.assert_called_once()
         assert users == []
         assert len(users) == 0
+
+
+@pytest.mark.asyncio
+async def test_get_users_raise_database_error(mock_session: AsyncSession):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(
+        UsersRepository, "get_users", new_callable=AsyncMock
+    ) as mock_get_users:
+        mock_get_users.side_effect = DatabaseError
+
+        with raises(DatabaseError):
+            await repository.get_users()
+
+        mock_get_users.assert_called_once()
