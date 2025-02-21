@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock
 from sqlalchemy.ext.asyncio import AsyncSession
 from blog_api.core.security import gen_hash
 from blog_api.models.users import UserModel
-from tests.factories import single_user_data
+from tests.factories import single_user_data, many_users_data
 from faker import Faker
 
 fake: Faker = Faker()
@@ -37,3 +37,10 @@ def user_id() -> UUID:
 @fixture
 def mock_user(hashed_password: str) -> UserModel:
     return UserModel(**single_user_data(), password=hashed_password)
+
+
+@fixture
+async def mock_users_inserted() -> list[UserModel]:
+    users = [UserModel(**user) for user in many_users_data()]
+
+    return users
