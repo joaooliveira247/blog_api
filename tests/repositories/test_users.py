@@ -97,3 +97,21 @@ async def test_get_users_return_success(
         mock_get_users.assert_called_once()
         assert users == mock_users_inserted
         assert len(users) == len(mock_users_inserted)
+
+
+@pytest.mark.asyncio
+async def test_get_users_return_success_but_empty(
+    mock_session: AsyncSession, mock_users_inserted: list[UserModel]
+):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(
+        UsersRepository, "get_users", new_callable=AsyncMock
+    ) as mock_get_users:
+        mock_get_users.return_value = []
+
+        users = await repository.get_users()
+
+        mock_get_users.assert_called_once()
+        assert users == []
+        assert len(users) == 0
