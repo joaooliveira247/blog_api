@@ -128,3 +128,18 @@ async def test_get_users_raise_database_error(mock_session: AsyncSession):
             await repository.get_users()
 
         mock_get_users.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_get_users_raise_generic_error(mock_session: AsyncSession):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(
+        UsersRepository, "get_users", new_callable=AsyncMock
+    ) as mock_get_users:
+        mock_get_users.side_effect = GenericError
+
+        with raises(GenericError):
+            await repository.get_users()
+
+        mock_get_users.assert_called_once()
