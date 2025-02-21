@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 from uuid import UUID
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -68,7 +68,6 @@ async def test_create_user_raise_database_error(
 async def test_create_user_raise_generic_error(
     mock_session: AsyncSession, mock_user: UserModel
 ):
-
     repository = UsersRepository(mock_session)
 
     mock_session.commit = AsyncMock(side_effect=Exception())
@@ -80,3 +79,21 @@ async def test_create_user_raise_generic_error(
     mock_session.add.assert_called_once_with(mock_user)
     mock_session.commit.assert_awaited_once()
     mock_session.rollback.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_get_users_return_success(
+    mock_session: AsyncSession, mock_users_inserted: list[UserModel]
+):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(
+        UsersRepository, "get_users", new_callable=AsyncMock
+    ) as mock_get_users:
+        mock_get_users.return_value = mock_users_inserted
+
+        users = await repository.get_users()
+
+        mock_get_users.assert_called_once()
+        assert users == mock_users_inserted
+        assert len(users) == len(mock_users_inserted)

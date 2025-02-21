@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import OperationalError, IntegrityError
+from sqlalchemy import select
 from blog_api.models.users import UserModel
 from blog_api.contrib import DatabaseError, UnableCreateEntity, GenericError
 
@@ -22,3 +23,15 @@ class UsersRepository:
         except Exception:
             await self.db.rollback()
             raise GenericError
+
+    async def get_users(self) -> list[UserModel]:
+        async with self.db as session:
+            try:
+                result = await session.execute(select(UserModel))
+            except OperationalError:
+                raise DatabaseError
+            except Exception:
+                raise GenericError
+
+            users = result.scalars().all()
+            return list(users)
