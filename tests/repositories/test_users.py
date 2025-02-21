@@ -100,9 +100,7 @@ async def test_get_users_return_success(
 
 
 @pytest.mark.asyncio
-async def test_get_users_return_success_but_empty(
-    mock_session: AsyncSession, mock_users_inserted: list[UserModel]
-):
+async def test_get_users_return_success_but_empty(mock_session: AsyncSession):
     repository = UsersRepository(mock_session)
 
     with patch.object(
