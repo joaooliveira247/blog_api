@@ -143,3 +143,20 @@ async def test_get_users_raise_generic_error(mock_session: AsyncSession):
             await repository.get_users()
 
         mock_get_users.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_id_success(
+    mock_session: AsyncSession, mock_user_inserted: UserModel
+):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(
+        UsersRepository, "get_user_by_id", new_callable=AsyncMock
+    ) as mock:
+        mock.return_value = mock_user_inserted
+
+        user = await repository.get_user_by_id(mock_user_inserted.id)
+
+        mock.assert_called_once_with(mock_user_inserted.id)
+        assert user == mock_user_inserted

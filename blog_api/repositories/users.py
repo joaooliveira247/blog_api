@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import OperationalError, IntegrityError
 from sqlalchemy import select
@@ -35,3 +36,17 @@ class UsersRepository:
 
             users = result.scalars().all()
             return list(users)
+
+    async def get_user_by_id(self, id: uuid.UUID) -> UserModel:
+        async with self.db as session:
+            try:
+                result = await session.execute(
+                    select(UserModel).filter(UserModel.id == id)
+                )
+            except OperationalError:
+                raise DatabaseError
+            except Exception:
+                raise GenericError
+
+            user = result.scalars().one_or_none()
+            return user
