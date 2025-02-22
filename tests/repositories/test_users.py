@@ -291,3 +291,24 @@ async def test_get_user_by_query_success_return_none(
 
         mock.assert_called_once_with(method_arg)
         assert user is None
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_query_raise_database_error(
+    mock_session: AsyncSession, mock_user_inserted: UserModel
+):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(
+        UsersRepository, "get_user_by_query", new_callable=AsyncMock
+    ) as mock:
+        mock.side_effect = DatabaseError
+
+        method_arg = UserModel(
+            username=mock_user_inserted.username, email=mock_user_inserted.email
+        )
+
+        with raises(DatabaseError):
+            await repository.get_user_by_query(method_arg)
+
+        mock.assert_called_once_with(method_arg)
