@@ -40,6 +40,11 @@ def mock_user(hashed_password: str) -> UserModel:
 
 
 @fixture
+def mock_user_inserted(hashed_password: str, user_id: UUID) -> UserModel:
+    return UserModel(**single_user_data(), password=hashed_password, id=user_id)
+
+
+@fixture
 async def mock_users_inserted() -> list[UserModel]:
     users = [UserModel(**user) for user in many_users_data()]
 
