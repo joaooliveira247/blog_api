@@ -50,3 +50,22 @@ class UsersRepository:
 
             user = result.scalars().one_or_none()
             return user
+
+    async def get_user_by_query(self, query: UserModel) -> UserModel | None:
+        async with self.db as session:
+            statement = select(UserModel)
+
+            if query.email:
+                statement.filter(UserModel.email == query.email)
+            if query.username:
+                statement.filter(UserModel.username == query.username)
+
+            try:
+                result = await session.execute(statement)
+            except OperationalError:
+                raise DatabaseError
+            except Exception:
+                raise GenericError
+
+            user = result.scalars().one_or_none()
+            return user
