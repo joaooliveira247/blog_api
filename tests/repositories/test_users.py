@@ -312,3 +312,24 @@ async def test_get_user_by_query_raise_database_error(
             await repository.get_user_by_query(method_arg)
 
         mock.assert_called_once_with(method_arg)
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_query_raise_generic_error(
+    mock_session: AsyncSession, mock_user_inserted: UserModel
+):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(
+        UsersRepository, "get_user_by_query", new_callable=AsyncMock
+    ) as mock:
+        mock.side_effect = GenericError
+
+        method_arg = UserModel(
+            username=mock_user_inserted.username, email=mock_user_inserted.email
+        )
+
+        with raises(GenericError):
+            await repository.get_user_by_query(method_arg)
+
+        mock.assert_called_once_with(method_arg)
