@@ -230,3 +230,22 @@ async def test_get_user_by_query_username_success(
 
         mock.assert_called_once_with(method_arg)
         assert user == mock_user_inserted
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_query_email_success(
+    mock_session: AsyncSession, mock_user_inserted: UserModel
+):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(
+        UsersRepository, "get_user_by_query", new_callable=AsyncMock
+    ) as mock:
+        mock.return_value = mock_user_inserted
+
+        method_arg = UserModel(email=mock_user_inserted.email)
+
+        user = await repository.get_user_by_query(method_arg)
+
+        mock.assert_called_once_with(method_arg)
+        assert user == mock_user_inserted
