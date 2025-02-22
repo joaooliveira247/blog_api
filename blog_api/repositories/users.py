@@ -37,7 +37,7 @@ class UsersRepository:
             users = result.scalars().all()
             return list(users)
 
-    async def get_user_by_id(self, id: uuid.UUID) -> UserModel:
+    async def get_user_by_id(self, id: uuid.UUID) -> UserModel | None:
         async with self.db as session:
             try:
                 result = await session.execute(
