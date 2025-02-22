@@ -193,7 +193,7 @@ async def test_get_user_by_id_raise_database_error(
         with raises(DatabaseError):
             await repository.get_user_by_id(user_id)
 
-        mock.assert_awaited_once_with(user_id)
+        mock.assert_called_once_with(user_id)
 
 
 @pytest.mark.asyncio
