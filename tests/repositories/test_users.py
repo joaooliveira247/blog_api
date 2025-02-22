@@ -160,3 +160,20 @@ async def test_get_user_by_id_success(
 
         mock.assert_called_once_with(mock_user_inserted.id)
         assert user == mock_user_inserted
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_id_success_return_none(
+    mock_session: AsyncSession, user_id: UUID
+):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(
+        UsersRepository, "get_user_by_id", new_callable=AsyncMock
+    ) as mock:
+        mock.return_value = None
+
+        user = await repository.get_user_by_id(user_id)
+
+        mock.assert_awaited_once_with(user_id)
+        assert user is None
