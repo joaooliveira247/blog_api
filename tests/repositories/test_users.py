@@ -211,3 +211,22 @@ async def test_get_user_by_id_raise_generic_error(
             await repository.get_user_by_id(user_id)
 
         mock.assert_called_once_with(user_id)
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_query_username_success(
+    mock_session: AsyncSession, mock_user_inserted: UserModel
+):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(
+        UsersRepository, "get_user_by_query", new_callable=AsyncMock
+    ) as mock:
+        mock.return_value = mock_user_inserted
+
+        method_arg = UserModel(username=mock_user_inserted.username)
+
+        user = await repository.get_user_by_query(method_arg)
+
+        mock.assert_called_once_with(method_arg)
+        assert user == mock_user_inserted
