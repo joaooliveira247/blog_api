@@ -24,6 +24,8 @@ class UsersRepository:
         except Exception:
             await self.db.rollback()
             raise GenericError
+        finally:
+            await self.db.close()
 
     async def get_users(self) -> list[UserModel]:
         async with self.db as session:
