@@ -105,3 +105,30 @@ class UsersRepository:
             except Exception:
                 await self.db.rollback()
                 raise GenericError
+
+    async def update_user_role(self, user_id, role: str) -> None:
+        with self.db as session:
+            try:
+                result = await session.execute(
+                    select(UserModel).filter(UserModel.id == user_id)
+                )
+
+                if update_user := result.scalars().one_or_none():
+                    update_user.role = role
+
+                    await self.db.flush()
+                    await self.db.commit()
+                    return
+
+                session.rollback()
+                raise NoResultFound
+
+            except OperationalError:
+                await self.db.rollback()
+                raise DatabaseError
+            except IntegrityError:
+                await self.db.rollback()
+                raise UnableUpdateEntity
+            except Exception:
+                await self.db.rollback()
+                raise GenericError
