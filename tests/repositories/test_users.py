@@ -495,3 +495,20 @@ async def test_update_user_role_raise_unable_update_entity_error(
             await repository.update_user_role(user_id, "Administrator")
 
         mock.assert_called_once_with(user_id, "Administrator")
+
+
+@pytest.mark.asyncio
+async def test_update_user_role_raise_generic_error(
+    mock_session: AsyncSession, user_id: UUID
+):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(
+        UsersRepository, "update_user_role", new_callable=AsyncMock
+    ) as mock:
+        mock.side_effect = GenericError
+
+        with raises(GenericError):
+            await repository.update_user_role(user_id, "Administrator")
+
+        mock.assert_called_once_with(user_id, "Administrator")
