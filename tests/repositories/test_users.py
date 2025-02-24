@@ -461,3 +461,20 @@ async def test_update_user_role_raise_no_result_found_error(
             await repository.update_user_role(user_id, "Administrator")
 
         mock.assert_called_once_with(user_id, "Administrator")
+
+
+@pytest.mark.asyncio
+async def test_update_user_role_raise_database_error(
+    mock_session: AsyncSession, user_id: UUID
+):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(
+        UsersRepository, "update_user_role", new_callable=AsyncMock
+    ) as mock:
+        mock.side_effect = DatabaseError
+
+        with raises(DatabaseError):
+            await repository.update_user_role(user_id, "Administrator")
+
+        mock.assert_called_once_with(user_id, "Administrator")
