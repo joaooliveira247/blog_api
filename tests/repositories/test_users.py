@@ -410,3 +410,20 @@ async def test_update_user_raise_unable_update_entity_error(
             await repository.update_user_password(user_id, hashed_string_password)
 
         mock.assert_called_once_with(user_id, hashed_string_password)
+
+
+@pytest.mark.asyncio
+async def test_update_user_raise_generic_error(
+    mock_session: AsyncSession, user_id: UUID, hashed_string_password
+):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(
+        UsersRepository, "update_user_password", new_callable=AsyncMock
+    ) as mock:
+        mock.side_effect = GenericError
+
+        with raises(GenericError):
+            await repository.update_user_password(user_id, hashed_string_password)
+
+        mock.assert_called_once_with(user_id, hashed_string_password)
