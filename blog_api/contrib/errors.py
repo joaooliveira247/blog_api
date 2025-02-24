@@ -14,6 +14,11 @@ class UnableCreateEntity(CustomError):
         super().__init__("Unable Create Entity: Field value already exists")
 
 
+class UnableUpdateEntity(CustomError):
+    def __init__(self):
+        super().__init__("Unable Create Entity: Field value already exists")
+
+
 class GenericError(CustomError):
     def __init__(self):
         super().__init__("Generic Error")
