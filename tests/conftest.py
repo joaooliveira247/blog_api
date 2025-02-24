@@ -30,6 +30,11 @@ def hashed_password(password: str) -> str:
 
 
 @fixture
+def hashed_string_password() -> str:
+    return "$2b$12$4Tcq4pZxdbBH1OkC2EzJ3eW.HpuSPgYj7mrRIABQ7ifY/CAvPE2/a"
+
+
+@fixture
 def user_id() -> UUID:
     return uuid4()
 
