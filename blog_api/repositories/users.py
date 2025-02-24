@@ -10,7 +10,7 @@ class UsersRepository:
     def __init__(self, session: AsyncSession):
         self.db = session
 
-    async def create(self, user: UserModel):
+    async def create_user(self, user: UserModel):
         try:
             self.db.add(user)
             await self.db.flush()
