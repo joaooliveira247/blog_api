@@ -427,3 +427,20 @@ async def test_update_user_raise_generic_error(
             await repository.update_user_password(user_id, hashed_string_password)
 
         mock.assert_called_once_with(user_id, hashed_string_password)
+
+
+@pytest.mark.asyncio
+async def test_update_user_role_success(
+    mock_session: AsyncSession,
+    mock_user_inserted: UserModel,
+):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(
+        UsersRepository, "update_user_role", new_callable=AsyncMock
+    ) as mock:
+        mock.return_value = None
+
+        await repository.update_user_role(mock_user_inserted.id, "Administrator")
+
+        mock.assert_called_once_with(mock_user_inserted.id, "Administrator")
