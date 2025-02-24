@@ -19,6 +19,11 @@ class UnableUpdateEntity(CustomError):
         super().__init__("Unable Create Entity: Field value already exists")
 
 
+class NoResultFound(CustomError):
+    def __init__(self):
+        super().__init__("Result not found")
+
+
 class GenericError(CustomError):
     def __init__(self):
         super().__init__("Generic Error")
