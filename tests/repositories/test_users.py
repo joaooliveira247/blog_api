@@ -5,7 +5,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError, OperationalError
 from blog_api.repositories.users import UsersRepository
 from blog_api.models.users import UserModel
-from blog_api.contrib.errors import UnableCreateEntity, DatabaseError, GenericError
+from blog_api.contrib.errors import (
+    UnableCreateEntity,
+    DatabaseError,
+    GenericError,
+    NoResultFound,
+)
 from pytest import raises
 
 
@@ -351,3 +356,20 @@ async def test_update_user_password_success(
         await repository.update_user_password(mock_user_inserted.id, new_password)
 
         mock.assert_called_once_with(mock_user_inserted.id, new_password)
+
+
+@pytest.mark.asyncio
+async def test_update_user_raise_no_result_found_error(
+    mock_session: AsyncSession, user_id: UUID, hashed_string_password
+):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(
+        UsersRepository, "update_user_password", new_callable=AsyncMock
+    ) as mock:
+        mock.side_effect = NoResultFound
+
+        with raises(NoResultFound):
+            await repository.update_user_password(user_id, hashed_string_password)
+
+        mock.assert_called_once_with(user_id, hashed_string_password)
