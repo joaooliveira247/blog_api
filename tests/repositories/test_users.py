@@ -17,7 +17,7 @@ async def test_create_user_success(
 
     mock_session.commit.side_effect = lambda: setattr(mock_user, "id", user_id)
 
-    await repository.create(mock_user)
+    await repository.create_user(mock_user)
 
     mock_session.add.assert_called_once_with(mock_user)
     mock_session.commit.assert_called_once()
@@ -38,7 +38,7 @@ async def test_create_user_raise_unable_create_entity_error(
     with raises(
         UnableCreateEntity, match="Unable Create Entity: Field value already exists"
     ):
-        await repository.create(mock_user)
+        await repository.create_user(mock_user)
 
     mock_session.add.assert_called_once_with(mock_user)
     mock_session.commit.assert_called_once()
@@ -57,7 +57,7 @@ async def test_create_user_raise_database_error(
     mock_session.rollback = AsyncMock()
 
     with raises(DatabaseError, match="Database integrity error"):
-        await repository.create(mock_user)
+        await repository.create_user(mock_user)
 
     mock_session.add.assert_called_once_with(mock_user)
     mock_session.commit.assert_called_once()
@@ -74,7 +74,7 @@ async def test_create_user_raise_generic_error(
     mock_session.rollback = AsyncMock()
 
     with raises(GenericError, match="Generic Error"):
-        await repository.create(mock_user)
+        await repository.create_user(mock_user)
 
     mock_session.add.assert_called_once_with(mock_user)
     mock_session.commit.assert_awaited_once()
