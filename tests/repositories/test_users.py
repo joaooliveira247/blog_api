@@ -333,3 +333,21 @@ async def test_get_user_by_query_raise_generic_error(
             await repository.get_user_by_query(method_arg)
 
         mock.assert_called_once_with(method_arg)
+
+
+@pytest.mark.asyncio
+async def test_update_user_password_success(
+    mock_session: AsyncSession, mock_user_inserted: UserModel
+):
+    repository = UsersRepository(mock_session)
+
+    new_password = "$2b$12$4Tcq4pZxdbBH1OkC2EzJ3eW.HpuSPgYj7mrRIABQ7ifY/CAvPE2/a"
+
+    with patch.object(
+        UsersRepository, "update_user_password", new_callable=AsyncMock
+    ) as mock:
+        mock.return_value = None
+
+        await repository.update_user_password(mock_user_inserted.id, new_password)
+
+        mock.assert_called_once_with(mock_user_inserted.id, new_password)
