@@ -132,3 +132,28 @@ class UsersRepository:
             except Exception:
                 await session.rollback()
                 raise GenericError
+
+    async def delete_user(self, user_id) -> None:
+        with self.db as session:
+            try:
+                result = await session.execute(
+                    select(UserModel).filter(UserModel.id == user_id)
+                )
+
+                if delete_user := result.scalars().one_or_none():
+                    await session.delete(delete_user)
+                    await session.commit()
+                    return
+
+                session.rollback()
+                raise NoResultFound
+
+            except OperationalError:
+                await session.rollback()
+                raise DatabaseError
+            except IntegrityError:
+                await session.rollback()
+                raise UnableUpdateEntity
+            except Exception:
+                await session.rollback()
+                raise GenericError
