@@ -10,6 +10,7 @@ from blog_api.contrib.errors import (
     DatabaseError,
     GenericError,
     NoResultFound,
+    UnableDeleteEntity,
     UnableUpdateEntity,
 )
 from pytest import raises
@@ -554,6 +555,21 @@ async def test_delete_user_raise_database_error(
         mock.side_effect = DatabaseError
 
         with raises(DatabaseError):
+            await repository.delete_user(user_id)
+
+        mock.assert_called_once_with(user_id)
+
+
+@pytest.mark.asyncio
+async def test_delete_user_raise_unable_delete_entity_error(
+    mock_session: AsyncSession, user_id: UUID
+):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(UsersRepository, "delete_user", new_callable=AsyncMock) as mock:
+        mock.side_effect = UnableDeleteEntity
+
+        with raises(UnableDeleteEntity):
             await repository.delete_user(user_id)
 
         mock.assert_called_once_with(user_id)
