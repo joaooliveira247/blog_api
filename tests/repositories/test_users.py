@@ -512,3 +512,18 @@ async def test_update_user_role_raise_generic_error(
             await repository.update_user_role(user_id, "Administrator")
 
         mock.assert_called_once_with(user_id, "Administrator")
+
+
+@pytest.mark.asyncio
+async def test_delete_user_success(
+    mock_session: AsyncSession,
+    user_id: UUID,
+):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(UsersRepository, "delete_user", new_callable=AsyncMock) as mock:
+        mock.return_value = None
+
+        await repository.delete_user(user_id)
+
+        mock.assert_called_once_with(user_id)
