@@ -116,19 +116,19 @@ class UsersRepository:
                 if update_user := result.scalars().one_or_none():
                     update_user.role = role
 
-                    await self.db.flush()
-                    await self.db.commit()
+                    await session.flush()
+                    await session.commit()
                     return
 
                 session.rollback()
                 raise NoResultFound
 
             except OperationalError:
-                await self.db.rollback()
+                await session.rollback()
                 raise DatabaseError
             except IntegrityError:
-                await self.db.rollback()
+                await session.rollback()
                 raise UnableUpdateEntity
             except Exception:
-                await self.db.rollback()
+                await session.rollback()
                 raise GenericError
