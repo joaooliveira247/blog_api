@@ -573,3 +573,18 @@ async def test_delete_user_raise_unable_delete_entity_error(
             await repository.delete_user(user_id)
 
         mock.assert_called_once_with(user_id)
+
+
+@pytest.mark.asyncio
+async def test_delete_user_raise_generic_error(
+    mock_session: AsyncSession, user_id: UUID
+):
+    repository = UsersRepository(mock_session)
+
+    with patch.object(UsersRepository, "delete_user", new_callable=AsyncMock) as mock:
+        mock.side_effect = GenericError
+
+        with raises(GenericError):
+            await repository.delete_user(user_id)
+
+        mock.assert_called_once_with(user_id)
