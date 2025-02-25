@@ -7,6 +7,7 @@ from blog_api.contrib.errors import (
     DatabaseError,
     UnableCreateEntity,
     GenericError,
+    UnableDeleteEntity,
     UnableUpdateEntity,
     NoResultFound,
 )
@@ -153,7 +154,7 @@ class UsersRepository:
                 raise DatabaseError
             except IntegrityError:
                 await session.rollback()
-                raise UnableUpdateEntity
+                raise UnableDeleteEntity
             except Exception:
                 await session.rollback()
                 raise GenericError
