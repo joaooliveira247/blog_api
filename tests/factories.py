@@ -27,3 +27,11 @@ def many_users_data() -> list[dict]:
         }
         for passwd in hash_pass
     ]
+
+
+def single_post_data() -> dict:
+    return {
+        "title": "fake blog post",
+        "categories": ["fake", "mock", "factory"],
+        "content": fake.text(),
+    }
