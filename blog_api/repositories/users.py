@@ -2,6 +2,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import OperationalError, IntegrityError
 from sqlalchemy import select
+from blog_api.contrib.repositories import BaseRepository
 from blog_api.models.users import UserModel
 from blog_api.contrib.errors import (
     DatabaseError,
@@ -13,9 +14,9 @@ from blog_api.contrib.errors import (
 )
 
 
-class UsersRepository:
-    def __init__(self, session: AsyncSession):
-        self.db = session
+class UsersRepository(BaseRepository):
+    def __init__(self, db: AsyncSession):
+        super().__init__(db)
 
     async def create_user(self, user: UserModel):
         try:
