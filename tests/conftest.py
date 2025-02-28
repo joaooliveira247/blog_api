@@ -5,7 +5,8 @@ from unittest.mock import AsyncMock
 from sqlalchemy.ext.asyncio import AsyncSession
 from blog_api.core.security import gen_hash
 from blog_api.models.users import UserModel
-from tests.factories import single_user_data, many_users_data
+from blog_api.models.posts import PostModel
+from tests.factories import single_post_data, single_user_data, many_users_data
 from faker import Faker
 
 fake: Faker = Faker()
@@ -47,6 +48,11 @@ def post_id() -> UUID:
 @fixture
 def mock_user(hashed_password: str) -> UserModel:
     return UserModel(**single_user_data(), password=hashed_password)
+
+
+@fixture
+def mock_post(user_id: UUID) -> PostModel:
+    return PostModel(**single_post_data(), user_id=user_id)
 
 
 @fixture
