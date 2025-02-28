@@ -26,7 +26,9 @@ class UnableDeleteEntity(CustomError):
 
 class NoResultFound(CustomError):
     def __init__(self, resource: str | None = None):
-        message = f"Result not found in {resource}" if resource else "Result not found"
+        message = (
+            f"Result not found with {resource}" if resource else "Result not found"
+        )
         super().__init__(message)
 
 
