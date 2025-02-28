@@ -25,8 +25,13 @@ class UnableDeleteEntity(CustomError):
 
 
 class NoResultFound(CustomError):
-    def __init__(self):
-        super().__init__("Result not found")
+    def __init__(self, custom_message: str | None = None):
+        message = (
+            f"Result not found in {custom_message}"
+            if custom_message
+            else "Result not found"
+        )
+        super().__init__(message)
 
 
 class GenericError(CustomError):
