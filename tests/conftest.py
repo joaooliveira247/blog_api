@@ -40,6 +40,11 @@ def user_id() -> UUID:
 
 
 @fixture
+def book_id() -> UUID:
+    return uuid4()
+
+
+@fixture
 def mock_user(hashed_password: str) -> UserModel:
     return UserModel(**single_user_data(), password=hashed_password)
 
