@@ -40,7 +40,7 @@ def user_id() -> UUID:
 
 
 @fixture
-def book_id() -> UUID:
+def post_id() -> UUID:
     return uuid4()
 
 
