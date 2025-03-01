@@ -4,7 +4,12 @@ from sqlalchemy.exc import OperationalError, IntegrityError
 from blog_api.repositories.posts import PostsRepository
 from blog_api.models.posts import PostModel
 from blog_api.models.posts import UserModel
-from blog_api.contrib.errors import DatabaseError, NoResultFound, UnableCreateEntity
+from blog_api.contrib.errors import (
+    DatabaseError,
+    GenericError,
+    NoResultFound,
+    UnableCreateEntity,
+)
 from uuid import UUID
 import pytest
 
@@ -75,6 +80,23 @@ async def test_create_post_raise_unable_create_entity_error(
     with pytest.raises(
         UnableCreateEntity, match="Unable Create Entity: Field value already exists"
     ):
+        await posts_repository.create_post(mock_post)
+
+    mock_session.rollback.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_create_post_raise_generic_error(
+    mock_session: AsyncMock, mock_post: MagicMock
+):
+    users_repository = AsyncMock()
+    users_repository.get_user_by_id.return_value = MagicMock()
+
+    posts_repository = PostsRepository(mock_session, users_repository)
+
+    mock_session.flush.side_effect = Exception()
+
+    with pytest.raises(GenericError, match="Generic Error"):
         await posts_repository.create_post(mock_post)
 
     mock_session.rollback.assert_called_once()
