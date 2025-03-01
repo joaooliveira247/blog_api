@@ -31,7 +31,7 @@ async def test_create_post_success(
 
 
 @pytest.mark.asyncio
-async def test_create_post_return_no_result_found_in_user_id(
+async def test_create_post_raise_no_result_found_in_user_id(
     mock_session: AsyncSession, mock_post: PostModel
 ):
     users_repository = AsyncMock()
