@@ -18,13 +18,12 @@ class PostsRepository(BaseRepository):
         self.user_repository = user_repository
 
     async def create_post(self, post: PostModel) -> None:
-        try:
-            user: UserModel | None = await self.user_repository.get_user_by_id(
-                post.user_id
-            )
-            if user is None:
-                raise NoResultFound("user_id")
+        user: UserModel | None = await self.user_repository.get_user_by_id(post.user_id)
 
+        if user is None:
+            raise NoResultFound("user_id")
+
+        try:
             self.db.add(post)
             await self.db.flush()
             await self.db.commit()
