@@ -6,7 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from blog_api.core.security import gen_hash
 from blog_api.models.users import UserModel
 from blog_api.models.posts import PostModel
-from tests.factories import single_post_data, single_user_data, many_users_data
+from blog_api.schemas.posts import PostOut
+from tests.factories import (
+    many_posts_data,
+    single_post_data,
+    single_user_data,
+    many_users_data,
+)
 from faker import Faker
 
 fake: Faker = Faker()
@@ -65,3 +71,8 @@ async def mock_users_inserted() -> list[UserModel]:
     users = [UserModel(**user) for user in many_users_data()]
 
     return users
+
+
+@fixture
+async def mock_posts_inserted() -> list[PostOut]:
+    return [PostOut(**post) for post in many_posts_data()]
