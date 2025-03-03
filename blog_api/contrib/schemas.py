@@ -3,7 +3,7 @@ from datetime import datetime
 
 
 class BaseSchemaMixin(BaseModel):
-    model = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OutMixin(BaseSchemaMixin):
