@@ -1,4 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.orm import joinedload
 from blog_api.contrib.repositories import BaseRepository
 from blog_api.repositories.users import UsersRepository
 from blog_api.models.posts import PostModel
@@ -10,6 +12,7 @@ from blog_api.contrib.errors import (
     GenericError,
 )
 from sqlalchemy.exc import OperationalError, IntegrityError
+from blog_api.schemas.posts import PostOut
 
 
 class PostsRepository(BaseRepository):
@@ -37,3 +40,28 @@ class PostsRepository(BaseRepository):
         except Exception:
             await self.db.rollback()
             raise GenericError
+
+    async def get_posts(self) -> list[PostOut]:
+        async with self.db as session:
+            try:
+                result = await session.execute(
+                    select(PostModel).options(joinedload(PostModel.user))
+                )
+            except OperationalError:
+                raise DatabaseError
+            except Exception:
+                raise GenericError
+
+            posts: list[PostModel] = result.scalars().all()
+            return [
+                PostOut(
+                    id=post.id,
+                    title=post.title,
+                    categories=post.categories,
+                    content=post.content,
+                    created_at=post.created_at,
+                    updated_at=post.updated_at,
+                    author=post.user.username,
+                )
+                for post in posts
+            ]

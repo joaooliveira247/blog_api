@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import OperationalError, IntegrityError
 from blog_api.repositories.posts import PostsRepository
@@ -12,6 +12,8 @@ from blog_api.contrib.errors import (
 )
 from uuid import UUID
 import pytest
+
+from blog_api.schemas.posts import PostOut
 
 
 @pytest.mark.asyncio
@@ -100,3 +102,21 @@ async def test_create_post_raise_generic_error(
         await posts_repository.create_post(mock_post)
 
     mock_session.rollback.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_get_posts_return_success(
+    mock_session: AsyncMock, mock_posts_inserted: list[PostOut]
+):
+    users_repository = AsyncMock()
+
+    posts_repository = PostsRepository(mock_session, users_repository)
+
+    with patch.object(PostsRepository, "get_posts", new_callable=AsyncMock) as mock:
+        mock.return_value = mock_posts_inserted
+
+        posts = await posts_repository.get_posts()
+
+        mock.assert_called_once()
+        assert posts == mock_posts_inserted
+        assert len(posts) == len(mock_posts_inserted)
