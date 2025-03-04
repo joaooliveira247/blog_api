@@ -1,7 +1,10 @@
+from datetime import datetime
 from faker import Faker
+from faker.providers import date_time
 from blog_api.core.security import gen_hash
 
 fake: Faker = Faker()
+fake.add_provider(date_time)
 
 
 def single_user_data() -> dict:
@@ -38,13 +41,22 @@ def single_post_data() -> dict:
 
 
 def many_posts_data() -> list[dict]:
-    return [
+    created_at_posts = [
+        datetime.combine(
+            fake.date_between(start_date="-1y", end_date="+1w"), datetime.min.time()
+        ).timestamp()
+        for _ in range(5)
+    ]
+
+    posts: list[dict] = [
         {
             "id": fake.uuid4(),
             "title": "Post 1: Introdução ao Python",
             "categories": ["Python", "Introdução"],
             "content": "Este post fala sobre o básico do Python.",
             "author": fake.user_name(),
+            "created_at": created_at_posts[0],
+            "updated_at": created_at_posts[0],
         },
         {
             "id": fake.uuid4(),
@@ -52,6 +64,8 @@ def many_posts_data() -> list[dict]:
             "categories": ["Python", "Avançado"],
             "content": "Este post aborda tópicos mais avançados em Python.",
             "author": fake.user_name(),
+            "created_at": created_at_posts[1],
+            "updated_at": created_at_posts[1],
         },
         {
             "id": fake.uuid4(),
@@ -59,6 +73,8 @@ def many_posts_data() -> list[dict]:
             "categories": ["Carreira", "Tecnologia"],
             "content": "Neste post, damos dicas sobre como crescer na carreira de tecnologia.",
             "author": fake.user_name(),
+            "created_at": created_at_posts[2],
+            "updated_at": created_at_posts[2],
         },
         {
             "id": fake.uuid4(),
@@ -66,6 +82,8 @@ def many_posts_data() -> list[dict]:
             "categories": ["Machine Learning", "Inteligência Artificial"],
             "content": "Aqui discutimos o início no mundo do Machine Learning.",
             "author": fake.user_name(),
+            "created_at": created_at_posts[3],
+            "updated_at": created_at_posts[3],
         },
         {
             "id": fake.uuid4(),
@@ -73,5 +91,9 @@ def many_posts_data() -> list[dict]:
             "categories": ["Carreira", "Desenvolvimento Pessoal"],
             "content": "Este post oferece dicas para quem quer começar a programar.",
             "author": fake.user_name(),
+            "created_at": created_at_posts[4],
+            "updated_at": created_at_posts[4],
         },
     ]
+
+    return posts
