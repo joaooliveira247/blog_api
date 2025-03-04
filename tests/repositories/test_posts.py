@@ -120,3 +120,21 @@ async def test_get_posts_return_success(
         mock.assert_called_once()
         assert posts == mock_posts_inserted
         assert len(posts) == len(mock_posts_inserted)
+
+
+@pytest.mark.asyncio
+async def test_get_posts_return_success_but_empty(
+    mock_session: AsyncMock,
+):
+    users_repository = AsyncMock()
+
+    posts_repository = PostsRepository(mock_session, users_repository)
+
+    with patch.object(PostsRepository, "get_posts", new_callable=AsyncMock) as mock:
+        mock.return_value = []
+
+        posts = await posts_repository.get_posts()
+
+        mock.assert_called_once()
+        assert posts == []
+        assert len(posts) == 0
