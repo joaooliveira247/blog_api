@@ -155,3 +155,20 @@ async def test_get_posts_raise_database_error(
             await posts_repository.get_posts()
 
         mock.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_get_posts_raise_generic_error(
+    mock_session: AsyncMock,
+):
+    users_repository = AsyncMock()
+
+    posts_repository = PostsRepository(mock_session, users_repository)
+
+    with patch.object(PostsRepository, "get_posts", new_callable=AsyncMock) as mock:
+        mock.side_effect = GenericError
+
+        with pytest.raises(GenericError, match="Generic Error"):
+            await posts_repository.get_posts()
+
+        mock.assert_called_once()
