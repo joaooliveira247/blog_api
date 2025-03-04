@@ -191,3 +191,20 @@ async def test_get_post_by_id_return_success(
 
         mock.assert_called_once_with(post_id)
         assert result == mock_post_inserted
+
+
+@pytest.mark.asyncio
+async def test_get_post_by_id_return_none(mock_session: AsyncMock, post_id: UUID):
+    users_repository = AsyncMock()
+
+    posts_repository = PostsRepository(mock_session, users_repository)
+
+    with patch.object(
+        PostsRepository, "get_post_by_id", new_callable=AsyncMock
+    ) as mock:
+        mock.return_value = None
+
+        result = await posts_repository.get_post_by_id(post_id)
+
+        mock.assert_called_once_with(post_id)
+        assert result is None
