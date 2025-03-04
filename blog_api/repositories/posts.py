@@ -1,3 +1,4 @@
+from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload
@@ -65,3 +66,31 @@ class PostsRepository(BaseRepository):
                 )
                 for post in posts
             ]
+
+    async def get_post_by_id(self, post_id: UUID) -> PostOut | None:
+        async with self.db as session:
+            try:
+                result = await session.execute(
+                    select(PostModel)
+                    .filter(PostModel.id == post_id)
+                    .options(joinedload(PostModel.user))
+                )
+            except OperationalError:
+                raise DatabaseError
+            except Exception:
+                raise GenericError
+
+            post: PostModel | None = result.scalars().one_or_none()
+
+            if post is None:
+                return None
+
+            return PostOut(
+                id=post.id,
+                title=post.title,
+                categories=post.categories,
+                content=post.content,
+                created_at=post.created_at,
+                updated_at=post.updated_at,
+                author=post.user.username,
+            )
