@@ -74,5 +74,10 @@ async def mock_users_inserted() -> list[UserModel]:
 
 
 @fixture
+def mock_post_inserted() -> PostOut:
+    return PostOut(**many_posts_data()[0])
+
+
+@fixture
 async def mock_posts_inserted() -> list[PostOut]:
     return [PostOut(**post) for post in many_posts_data()]
