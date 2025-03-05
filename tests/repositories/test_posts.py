@@ -289,3 +289,22 @@ async def test_get_post_by_user_id_return_empty(mock_session: AsyncMock, user_id
         mock.assert_called_once_with(user_id)
         assert posts == []
         assert len(posts) == 0
+
+
+@pytest.mark.asyncio
+async def test_get_post_by_user_id_raise_database_error(
+    mock_session: AsyncMock, user_id: UUID
+):
+    users_repository = AsyncMock()
+
+    posts_repository = PostsRepository(mock_session, users_repository)
+
+    with patch.object(
+        PostsRepository, "get_posts_by_user_id", new_callable=AsyncMock
+    ) as mock:
+        mock.side_effect = DatabaseError
+
+        with pytest.raises(DatabaseError, match="Database integrity error"):
+            await posts_repository.get_posts_by_user_id(user_id)
+
+        mock.assert_called_once_with(user_id)
