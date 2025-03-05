@@ -12,6 +12,7 @@ from tests.factories import (
     single_post_data,
     single_user_data,
     many_users_data,
+    update_post_data,
 )
 from faker import Faker
 
@@ -81,3 +82,8 @@ def mock_post_inserted() -> PostOut:
 @fixture
 async def mock_posts_inserted() -> list[PostOut]:
     return [PostOut(**post) for post in many_posts_data()]
+
+
+@fixture
+def mock_update_post() -> dict:
+    return update_post_data()
