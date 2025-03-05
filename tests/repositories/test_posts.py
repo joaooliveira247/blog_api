@@ -246,3 +246,28 @@ async def test_get_post_by_id_raise_generic_error(
             await posts_repository.get_post_by_id(post_id)
 
         mock.assert_called_once_with(post_id)
+
+
+@pytest.mark.asyncio
+async def test_get_post_by_user_id_success(
+    mock_session: AsyncMock, user_id: UUID, mock_posts_inserted: list[PostOut]
+):
+    users_repository = AsyncMock()
+
+    posts_repository = PostsRepository(mock_session, users_repository)
+
+    mock_return_value = mock_posts_inserted[1:2]
+
+    for post in mock_return_value:
+        post.author = "joshingly"
+
+    with patch.object(
+        PostsRepository, "get_posts_by_user_id", new_callable=AsyncMock
+    ) as mock:
+        mock.return_value = mock_return_value
+
+        posts = await posts_repository.get_posts_by_user_id(user_id)
+
+        mock.assert_called_once_with(user_id)
+        assert mock_return_value == posts
+        assert len(mock_return_value) == len(posts)
