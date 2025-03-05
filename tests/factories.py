@@ -97,3 +97,10 @@ def many_posts_data() -> list[dict]:
     ]
 
     return posts
+
+
+def update_post_data() -> dict:
+    return {
+        "content": "Este post foi atualizado com novas dicas para quem quer começar a programar.",
+        "categories": ["Carreira", "Desenvolvimento Pessoal", "Educação"],
+    }
