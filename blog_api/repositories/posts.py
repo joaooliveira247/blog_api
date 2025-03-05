@@ -94,3 +94,31 @@ class PostsRepository(BaseRepository):
                 updated_at=post.updated_at,
                 author=post.user.username,
             )
+
+    async def get_posts_by_user_id(self, user_id: UUID) -> list[PostOut]:
+        async with self.db as session:
+            try:
+                result = await session.execute(
+                    select(PostModel)
+                    .options(joinedload(PostModel.user))
+                    .filter(PostModel.user_id == user_id)
+                )
+            except OperationalError:
+                raise DatabaseError
+            except Exception:
+                raise GenericError
+
+            posts: list[PostModel] = result.scalars().all()
+
+            return [
+                PostOut(
+                    id=post.id,
+                    title=post.title,
+                    categories=post.categories,
+                    content=post.content,
+                    created_at=post.created_at,
+                    updated_at=post.updated_at,
+                    author=post.user.username,
+                )
+                for post in posts
+            ]
