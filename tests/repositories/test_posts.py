@@ -271,3 +271,21 @@ async def test_get_post_by_user_id_success(
         mock.assert_called_once_with(user_id)
         assert mock_return_value == posts
         assert len(mock_return_value) == len(posts)
+
+
+@pytest.mark.asyncio
+async def test_get_post_by_user_id_return_empty(mock_session: AsyncMock, user_id: UUID):
+    users_repository = AsyncMock()
+
+    posts_repository = PostsRepository(mock_session, users_repository)
+
+    with patch.object(
+        PostsRepository, "get_posts_by_user_id", new_callable=AsyncMock
+    ) as mock:
+        mock.return_value = []
+
+        posts = await posts_repository.get_posts_by_user_id(user_id)
+
+        mock.assert_called_once_with(user_id)
+        assert posts == []
+        assert len(posts) == 0
