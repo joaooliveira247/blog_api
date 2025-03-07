@@ -11,6 +11,7 @@ from blog_api.contrib.errors import (
     DatabaseError,
     UnableCreateEntity,
     GenericError,
+    UnableUpdateEntity,
 )
 from sqlalchemy.exc import OperationalError, IntegrityError
 from blog_api.schemas.posts import PostOut
@@ -122,3 +123,28 @@ class PostsRepository(BaseRepository):
                 )
                 for post in posts
             ]
+
+    async def update_post(self, post_id: UUID, fields: dict) -> None:
+        async with self.db as session:
+            try:
+                result = await session.execute(
+                    select(PostModel).filter(PostModel.id == post_id)
+                )
+
+                if update_post := result.scalars().one_or_none():
+                    for k, v in fields:
+                        setattr(update_post, k, v)
+
+                    await session.flush()
+                    await session.commit()
+                    return
+                raise NoResultFound("post_id")
+            except OperationalError:
+                await self.db.rollback()
+                raise DatabaseError
+            except IntegrityError:
+                await self.db.rollback()
+                raise UnableUpdateEntity
+            except Exception:
+                await self.db.rollback()
+                raise GenericError
