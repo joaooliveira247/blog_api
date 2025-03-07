@@ -9,6 +9,7 @@ from blog_api.contrib.errors import (
     GenericError,
     NoResultFound,
     UnableCreateEntity,
+    UnableUpdateEntity,
 )
 from uuid import UUID
 import pytest
@@ -374,6 +375,23 @@ async def test_update_post_raise_database_error(
         mock.side_effect = DatabaseError
 
         with pytest.raises(DatabaseError, match="Database integrity error"):
+            await posts_repository.update_post(post_id, mock_update_post)
+
+        mock.assert_called_once_with(post_id, mock_update_post)
+
+
+@pytest.mark.asyncio
+async def test_update_post_raise_unable_update_entity(
+    mock_session: AsyncMock, post_id: UUID, mock_update_post: dict
+):
+    users_repository = AsyncMock()
+
+    posts_repository = PostsRepository(mock_session, users_repository)
+
+    with patch.object(PostsRepository, "update_post", new_callable=AsyncMock) as mock:
+        mock.side_effect = UnableUpdateEntity
+
+        with pytest.raises(UnableUpdateEntity, match="Unable Update Entity"):
             await posts_repository.update_post(post_id, mock_update_post)
 
         mock.assert_called_once_with(post_id, mock_update_post)
