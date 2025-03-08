@@ -11,6 +11,7 @@ from blog_api.contrib.errors import (
     DatabaseError,
     UnableCreateEntity,
     GenericError,
+    UnableDeleteEntity,
     UnableUpdateEntity,
 )
 from sqlalchemy.exc import OperationalError, IntegrityError
@@ -147,4 +148,26 @@ class PostsRepository(BaseRepository):
                 raise UnableUpdateEntity
             except Exception:
                 await self.db.rollback()
+                raise GenericError
+
+    async def delete_post(self, post_id: UUID) -> None:
+        async with self.db as session:
+            try:
+                result = await session.execute(
+                    select(PostModel).filter(PostModel.id == post_id)
+                )
+
+                if delete_post := result.scalars().one_or_none():
+                    await session.delete(delete_post)
+                    await session.commit()
+                    return
+                raise UnableDeleteEntity
+            except OperationalError:
+                await session.rollback()
+                raise DatabaseError
+            except IntegrityError:
+                await session.rollback()
+                raise UnableDeleteEntity
+            except Exception:
+                await session.rollback()
                 raise GenericError
