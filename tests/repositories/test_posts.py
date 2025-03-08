@@ -459,3 +459,20 @@ async def test_delete_post_raise_database_error(mock_session: AsyncMock, post_id
             await posts_repository.delete_post(post_id)
 
         mock.assert_called_once_with(post_id)
+
+
+@pytest.mark.asyncio
+async def test_delete_post_raise_no_result_found(
+    mock_session: AsyncMock, post_id: UUID
+):
+    users_repository = AsyncMock()
+
+    posts_repository = PostsRepository(mock_session, users_repository)
+
+    with patch.object(PostsRepository, "delete_post", new_callable=AsyncMock) as mock:
+        mock.side_effect = NoResultFound("user_id")
+
+        with pytest.raises(NoResultFound, match="Result not found with user_id"):
+            await posts_repository.delete_post(post_id)
+
+        mock.assert_called_once_with(post_id)
