@@ -161,7 +161,7 @@ class PostsRepository(BaseRepository):
                     await session.delete(delete_post)
                     await session.commit()
                     return
-                raise UnableDeleteEntity
+                raise NoResultFound("post_id")
             except OperationalError:
                 await session.rollback()
                 raise DatabaseError
