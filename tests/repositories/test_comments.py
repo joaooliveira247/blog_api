@@ -2,6 +2,7 @@ import pytest
 from uuid import UUID
 from unittest.mock import AsyncMock
 from sqlalchemy.ext.asyncio import AsyncSession
+from blog_api.contrib.errors import NoResultFound
 from blog_api.repositories.comments import CommentsRepository
 from blog_api.models.comments import CommentModel
 
@@ -32,3 +33,22 @@ async def test_create_comment_success(
     mock_session.flush.assert_called_once()
     mock_session.commit.assert_called_once()
     assert mock_comment.id == comment_id
+
+
+@pytest.mark.asyncio
+async def test_create_comment_raise_no_result_found_user_id(
+    mock_session: AsyncSession, mock_comment: CommentModel
+):
+    users_repository = AsyncMock()
+    users_repository.get_user_by_id.return_value = None
+
+    posts_repository = AsyncMock()
+
+    comments_repository = CommentsRepository(
+        mock_session, posts_repository, users_repository
+    )
+
+    with pytest.raises(NoResultFound, match="Result not found with user_id"):
+        await comments_repository.create_comment(mock_comment)
+
+        mock_session.assert_called_once_with(mock_comment)
