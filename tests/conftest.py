@@ -4,10 +4,12 @@ from uuid import UUID, uuid4
 from unittest.mock import AsyncMock
 from sqlalchemy.ext.asyncio import AsyncSession
 from blog_api.core.security import gen_hash
+from blog_api.models.comments import CommentModel
 from blog_api.models.users import UserModel
 from blog_api.models.posts import PostModel
 from blog_api.schemas.posts import PostOut
 from tests.factories import (
+    comment_data,
     many_posts_data,
     single_post_data,
     single_user_data,
@@ -87,3 +89,8 @@ async def mock_posts_inserted() -> list[PostOut]:
 @fixture
 def mock_update_post() -> dict:
     return update_post_data()
+
+
+@fixture
+def mock_comment(user_id: UUID, post_id: UUID) -> CommentModel:
+    return CommentModel(**comment_data(), user_id=user_id, post_id=post_id)
