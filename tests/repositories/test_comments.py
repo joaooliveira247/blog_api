@@ -52,3 +52,23 @@ async def test_create_comment_raise_no_result_found_user_id(
         await comments_repository.create_comment(mock_comment)
 
         mock_session.assert_called_once_with(mock_comment)
+
+
+@pytest.mark.asyncio
+async def test_create_comment_raise_no_result_found_post_id(
+    mock_session: AsyncSession, mock_comment: CommentModel, mock_user_inserted
+):
+    users_repository = AsyncMock()
+    users_repository.get_user_by_id.return_value = mock_user_inserted
+
+    posts_repository = AsyncMock()
+    posts_repository.get_post_by_id.return_value = None
+
+    comments_repository = CommentsRepository(
+        mock_session, posts_repository, users_repository
+    )
+
+    with pytest.raises(NoResultFound, match="Result not found with post_id"):
+        await comments_repository.create_comment(mock_comment)
+
+        mock_session.assert_called_once_with(mock_comment)
