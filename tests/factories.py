@@ -106,5 +106,5 @@ def update_post_data() -> dict:
     }
 
 
-def comment_post_data() -> dict:
+def comment_data() -> dict:
     return {"content": fake.text()}
