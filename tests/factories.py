@@ -104,3 +104,7 @@ def update_post_data() -> dict:
         "content": "Este post foi atualizado com novas dicas para quem quer começar a programar.",
         "categories": ["Carreira", "Desenvolvimento Pessoal", "Educação"],
     }
+
+
+def comment_post_data() -> dict:
+    return {"content": fake.text()}
