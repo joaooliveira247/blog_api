@@ -75,7 +75,7 @@ def mock_user_inserted(hashed_password: str, user_id: UUID) -> UserModel:
 
 
 @fixture
-async def mock_users_inserted() -> list[UserModel]:
+def mock_users_inserted() -> list[UserModel]:
     users = [UserModel(**user) for user in many_users_data()]
 
     return users
@@ -87,7 +87,7 @@ def mock_post_inserted() -> PostOut:
 
 
 @fixture
-async def mock_posts_inserted() -> list[PostOut]:
+def mock_posts_inserted() -> list[PostOut]:
     return [PostOut(**post) for post in many_posts_data()]
 
 
