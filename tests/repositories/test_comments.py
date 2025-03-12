@@ -3,7 +3,12 @@ from uuid import UUID
 from unittest.mock import AsyncMock, MagicMock
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import OperationalError, IntegrityError
-from blog_api.contrib.errors import DatabaseError, NoResultFound, UnableCreateEntity
+from blog_api.contrib.errors import (
+    DatabaseError,
+    GenericError,
+    NoResultFound,
+    UnableCreateEntity,
+)
 from blog_api.repositories.comments import CommentsRepository
 from blog_api.models.comments import CommentModel
 
@@ -117,6 +122,29 @@ async def test_create_comment_raise_unable_create_entity(
     with pytest.raises(
         UnableCreateEntity, match="Unable Create Entity: Field value already exists"
     ):
+        await comments_repository.create_comment(mock_comment)
+
+        mock_session.assert_called_once_with(mock_comment)
+        mock_session.rollback.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_create_comment_raise_generic_error(
+    mock_session: AsyncSession, mock_comment: CommentModel
+):
+    users_repository = AsyncMock()
+    users_repository.get_user_by_id.return_value = MagicMock()
+
+    posts_repository = AsyncMock()
+    posts_repository.get_post_by_id.return_value = MagicMock()
+
+    mock_session.add.side_effect = Exception()
+
+    comments_repository = CommentsRepository(
+        mock_session, posts_repository, users_repository
+    )
+
+    with pytest.raises(GenericError, match="Generic Error"):
         await comments_repository.create_comment(mock_comment)
 
         mock_session.assert_called_once_with(mock_comment)
