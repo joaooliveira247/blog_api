@@ -7,9 +7,11 @@ from blog_api.core.security import gen_hash
 from blog_api.models.comments import CommentModel
 from blog_api.models.users import UserModel
 from blog_api.models.posts import PostModel
+from blog_api.schemas.comments import CommentOut
 from blog_api.schemas.posts import PostOut
 from tests.factories import (
     comment_data,
+    many_comments_data,
     many_posts_data,
     single_post_data,
     single_user_data,
@@ -99,3 +101,8 @@ def mock_update_post() -> dict:
 @fixture
 def mock_comment(user_id: UUID, post_id: UUID) -> CommentModel:
     return CommentModel(**comment_data(), user_id=user_id, post_id=post_id)
+
+
+@fixture
+def mock_comments_inserted() -> list[CommentOut]:
+    return [CommentOut(**comment) for comment in many_comments_data()]
