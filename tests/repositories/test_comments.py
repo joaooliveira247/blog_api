@@ -173,3 +173,24 @@ async def test_get_comments_return_success(
 
         mock.assert_called_once()
         assert result == mock_comments_inserted
+
+
+@pytest.mark.asyncio
+async def test_get_comments_raise_database_error(mock_session: AsyncSession):
+    users_repository = AsyncMock()
+
+    posts_repository = AsyncMock()
+
+    comments_repository = CommentsRepository(
+        mock_session, posts_repository, users_repository
+    )
+
+    with patch.object(
+        CommentsRepository, "get_comments", new_callable=AsyncMock
+    ) as mock:
+        mock.side_effect = DatabaseError
+
+        with pytest.raises(DatabaseError, match="Database integrity error"):
+            await comments_repository.get_comments()
+
+        mock.assert_called_once()
