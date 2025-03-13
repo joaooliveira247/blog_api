@@ -108,3 +108,26 @@ def update_post_data() -> dict:
 
 def comment_data() -> dict:
     return {"content": fake.text()}
+
+
+def many_comments_data() -> list[dict]:
+    created_at_comments = [
+        datetime.combine(
+            fake.date_between(start_date="-1y", end_date="+1w"), datetime.min.time()
+        ).timestamp()
+        for _ in range(5)
+    ]
+
+    comments = [
+        {
+            "id": fake.uuid4(),
+            "content": fake.text(),
+            "created_at": created_at,
+            "updated_at": created_at,
+            "post_title": fake.sentence(),
+            "author": fake.user_name(),
+        }
+        for created_at in created_at_comments
+    ]
+
+    return comments
