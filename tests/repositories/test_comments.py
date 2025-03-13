@@ -1,6 +1,6 @@
 import pytest
 from uuid import UUID
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import OperationalError, IntegrityError
 from blog_api.contrib.errors import (
@@ -11,6 +11,7 @@ from blog_api.contrib.errors import (
 )
 from blog_api.repositories.comments import CommentsRepository
 from blog_api.models.comments import CommentModel
+from blog_api.schemas.comments import CommentOut
 
 
 @pytest.mark.asyncio
@@ -149,3 +150,26 @@ async def test_create_comment_raise_generic_error(
 
         mock_session.assert_called_once_with(mock_comment)
         mock_session.rollback.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_get_comments_return_success(
+    mock_session: AsyncSession, mock_comments_inserted: list[CommentOut]
+):
+    users_repository = AsyncMock()
+
+    posts_repository = AsyncMock()
+
+    comments_repository = CommentsRepository(
+        mock_session, posts_repository, users_repository
+    )
+
+    with patch.object(
+        CommentsRepository, "get_comments", new_callable=AsyncMock
+    ) as mock:
+        mock.return_value = mock_comments_inserted
+
+        result = await comments_repository.get_comments()
+
+        mock.assert_called_once()
+        assert result == mock_comments_inserted
