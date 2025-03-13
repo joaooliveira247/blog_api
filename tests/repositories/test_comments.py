@@ -215,3 +215,24 @@ async def test_get_comments_raise_database_error(mock_session: AsyncSession):
             await comments_repository.get_comments()
 
         mock.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_get_comments_raise_generic_error(mock_session: AsyncSession):
+    users_repository = AsyncMock()
+
+    posts_repository = AsyncMock()
+
+    comments_repository = CommentsRepository(
+        mock_session, posts_repository, users_repository
+    )
+
+    with patch.object(
+        CommentsRepository, "get_comments", new_callable=AsyncMock
+    ) as mock:
+        mock.side_effect = GenericError
+
+        with pytest.raises(GenericError, match="Generic Error"):
+            await comments_repository.get_comments()
+
+        mock.assert_called_once()
