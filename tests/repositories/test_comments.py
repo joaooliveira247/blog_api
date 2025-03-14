@@ -333,7 +333,7 @@ async def test_get_comment_by_id_raise_generic_error(
 @pytest.mark.asyncio
 async def test_get_comments_by_user_id_return_success(
     mock_session: AsyncSession,
-    mock_comments_inserted_same_user_id: list[CommentOut],
+    mock_comments_inserted_same_author: list[CommentOut],
     user_id: UUID,
 ):
     users_repository = AsyncMock()
@@ -347,11 +347,9 @@ async def test_get_comments_by_user_id_return_success(
     with patch.object(
         CommentsRepository, "get_comments_by_user_id", new_callable=AsyncMock
     ) as mock:
-        mock.return_value = mock_comments_inserted_same_user_id
+        mock.return_value = mock_comments_inserted_same_author
 
         result = await comments_repository.get_comments_by_user_id(user_id)
 
-        print(mock_comments_inserted_same_user_id)
-
         mock.assert_called_once_with(user_id)
-        assert result == mock_comments_inserted_same_user_id
+        assert result == mock_comments_inserted_same_author
