@@ -131,3 +131,7 @@ def many_comments_data() -> list[dict]:
     ]
 
     return comments
+
+
+def single_comment_update() -> str:
+    return fake.text()
