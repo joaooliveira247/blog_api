@@ -108,3 +108,36 @@ class CommentsRepository(BaseRepository):
                 post_title=comment.post.title,
                 author=comment.user.username,
             )
+
+    async def get_comments_by_user_id(self, user_id: UUID) -> list[CommentOut]:
+        async with self.db as session:
+            user: UserModel | None = await self.user_reposiotry.get_user_by_id(user_id)
+
+            if user is None:
+                raise NoResultFound("user_id")
+
+            try:
+                result = await session.execute(
+                    select(CommentModel)
+                    .options(
+                        joinedload(CommentModel.post), joinedload(CommentModel.user)
+                    )
+                    .filter(CommentModel.user_id == user_id)
+                )
+            except OperationalError:
+                raise DatabaseError
+            except Exception:
+                raise GenericError
+
+            comments: list[CommentModel] = result.scalars().all()
+            return [
+                CommentOut(
+                    id=comment.id,
+                    content=comment.content,
+                    created_at=comment.created_at,
+                    updated_at=comment.updated_at,
+                    post_title=comment.post.title,
+                    author=comment.user.username,
+                )
+                for comment in comments
+            ]
