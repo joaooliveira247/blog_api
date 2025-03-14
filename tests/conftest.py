@@ -104,5 +104,10 @@ def mock_comment(user_id: UUID, post_id: UUID) -> CommentModel:
 
 
 @fixture
+def mock_comment_inserted() -> CommentOut:
+    return CommentOut(**many_comments_data()[0])
+
+
+@fixture
 def mock_comments_inserted() -> list[CommentOut]:
     return [CommentOut(**comment) for comment in many_comments_data()]
