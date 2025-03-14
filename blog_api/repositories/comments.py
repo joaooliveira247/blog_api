@@ -1,3 +1,4 @@
+from uuid import UUID
 from blog_api.contrib.errors import NoResultFound
 from blog_api.contrib.repositories import BaseRepository
 from blog_api.repositories.posts import PostsRepository
@@ -78,3 +79,32 @@ class CommentsRepository(BaseRepository):
                 )
                 for comment in comments
             ]
+
+    async def get_comment_by_id(self, id: UUID) -> CommentOut | None:
+        async with self.db as session:
+            try:
+                result = await session.execute(
+                    select(CommentModel)
+                    .options(
+                        joinedload(CommentModel.post), joinedload(CommentModel.user)
+                    )
+                    .filter(CommentModel.id == id)
+                )
+            except OperationalError:
+                raise DatabaseError
+            except Exception:
+                raise GenericError
+
+            comment: CommentModel = result.scalars().one_or_none()
+
+            if comment is None:
+                return comment
+
+            return CommentOut(
+                id=comment.id,
+                content=comment.content,
+                created_at=comment.created_at,
+                updated_at=comment.updated_at,
+                post_title=comment.post.title,
+                author=comment.user.username,
+            )
