@@ -667,3 +667,25 @@ async def test_update_comment_raise_generic_error(
             await comments_repository.update_comment(comment_id, mock_comment_update)
 
         mock.assert_called_once_with(comment_id, mock_comment_update)
+
+
+@pytest.mark.asyncio
+async def test_delete_comment_return_success(
+    mock_session: AsyncSession, comment_id: UUID
+):
+    users_repository = AsyncMock()
+
+    posts_repository = AsyncMock()
+
+    comments_repository = CommentsRepository(
+        mock_session, posts_repository, users_repository
+    )
+
+    with patch.object(
+        CommentsRepository, "delete_comment", new_callable=AsyncMock
+    ) as mock:
+        mock.return_value = None
+
+        await comments_repository.delete_comment(comment_id)
+
+        mock.assert_called_once_with(comment_id)
