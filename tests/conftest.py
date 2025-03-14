@@ -123,3 +123,16 @@ def mock_comments_inserted_same_author(
         )
         for comment in mock_comments_inserted
     ]
+
+
+@fixture
+def mock_comments_inserted_same_post(
+    mock_post_inserted: PostOut, mock_comments_inserted: list[CommentOut]
+) -> list[CommentOut]:
+    return [
+        CommentOut(
+            **comment.model_dump(exclude="post_title"),
+            post_title=mock_post_inserted.title,
+        )
+        for comment in mock_comments_inserted
+    ]
