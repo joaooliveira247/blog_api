@@ -377,3 +377,20 @@ async def test_get_comments_by_user_id_return_success_but_empty(
 
         mock.assert_called_once_with(user_id)
         assert result == []
+
+
+@pytest.mark.asyncio
+async def test_get_comments_by_user_id_raise_no_result_found_user_id(
+    mock_session: AsyncSession, user_id
+):
+    users_repository = AsyncMock()
+    users_repository.get_user_by_id.return_value = None
+
+    posts_repository = AsyncMock()
+
+    comments_repository = CommentsRepository(
+        mock_session, posts_repository, users_repository
+    )
+
+    with pytest.raises(NoResultFound, match="Result not found with user_id"):
+        await comments_repository.get_comments_by_user_id(user_id)
