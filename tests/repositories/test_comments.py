@@ -689,3 +689,26 @@ async def test_delete_comment_return_success(
         await comments_repository.delete_comment(comment_id)
 
         mock.assert_called_once_with(comment_id)
+
+
+@pytest.mark.asyncio
+async def test_delete_comment_raise_no_result_found(
+    mock_session: AsyncSession, comment_id: UUID
+):
+    users_repository = AsyncMock()
+
+    posts_repository = AsyncMock()
+
+    comments_repository = CommentsRepository(
+        mock_session, posts_repository, users_repository
+    )
+
+    with patch.object(
+        CommentsRepository, "delete_comment", new_callable=AsyncMock
+    ) as mock:
+        mock.side_effect = NoResultFound("comment_id")
+
+        with pytest.raises(NoResultFound, match="Result not found with comment_id"):
+            await comments_repository.delete_comment(comment_id)
+
+        mock.assert_called_once_with(comment_id)
