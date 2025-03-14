@@ -712,3 +712,26 @@ async def test_delete_comment_raise_no_result_found(
             await comments_repository.delete_comment(comment_id)
 
         mock.assert_called_once_with(comment_id)
+
+
+@pytest.mark.asyncio
+async def test_delete_comment_raise_database_error(
+    mock_session: AsyncSession, comment_id: UUID
+):
+    users_repository = AsyncMock()
+
+    posts_repository = AsyncMock()
+
+    comments_repository = CommentsRepository(
+        mock_session, posts_repository, users_repository
+    )
+
+    with patch.object(
+        CommentsRepository, "delete_comment", new_callable=AsyncMock
+    ) as mock:
+        mock.side_effect = DatabaseError
+
+        with pytest.raises(DatabaseError, match="Database integrity error"):
+            await comments_repository.delete_comment(comment_id)
+
+        mock.assert_called_once_with(comment_id)
