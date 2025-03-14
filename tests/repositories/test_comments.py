@@ -644,3 +644,26 @@ async def test_update_comment_raise_database_error(
             await comments_repository.update_comment(comment_id, mock_comment_update)
 
         mock.assert_called_once_with(comment_id, mock_comment_update)
+
+
+@pytest.mark.asyncio
+async def test_update_comment_raise_generic_error(
+    mock_session: AsyncSession, comment_id: UUID, mock_comment_update: str
+):
+    users_repository = AsyncMock()
+
+    posts_repository = AsyncMock()
+
+    comments_repository = CommentsRepository(
+        mock_session, posts_repository, users_repository
+    )
+
+    with patch.object(
+        CommentsRepository, "update_comment", new_callable=AsyncMock
+    ) as mock:
+        mock.side_effect = GenericError
+
+        with pytest.raises(GenericError, match="Generic Error"):
+            await comments_repository.update_comment(comment_id, mock_comment_update)
+
+        mock.assert_called_once_with(comment_id, mock_comment_update)
