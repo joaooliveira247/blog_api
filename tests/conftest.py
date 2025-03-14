@@ -13,6 +13,7 @@ from tests.factories import (
     comment_data,
     many_comments_data,
     many_posts_data,
+    single_comment_update,
     single_post_data,
     single_user_data,
     many_users_data,
@@ -136,3 +137,8 @@ def mock_comments_inserted_same_post(
         )
         for comment in mock_comments_inserted
     ]
+
+
+@fixture
+def mock_comment_update() -> str:
+    return single_comment_update()
