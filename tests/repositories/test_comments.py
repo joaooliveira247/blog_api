@@ -9,6 +9,7 @@ from blog_api.contrib.errors import (
     NoResultFound,
     NothingToUpdate,
     UnableCreateEntity,
+    UnableDeleteEntity,
 )
 from blog_api.repositories.comments import CommentsRepository
 from blog_api.models.comments import CommentModel
@@ -732,6 +733,29 @@ async def test_delete_comment_raise_database_error(
         mock.side_effect = DatabaseError
 
         with pytest.raises(DatabaseError, match="Database integrity error"):
+            await comments_repository.delete_comment(comment_id)
+
+        mock.assert_called_once_with(comment_id)
+
+
+@pytest.mark.asyncio
+async def test_delete_comment_raise_unable_delete_entity(
+    mock_session: AsyncSession, comment_id: UUID
+):
+    users_repository = AsyncMock()
+
+    posts_repository = AsyncMock()
+
+    comments_repository = CommentsRepository(
+        mock_session, posts_repository, users_repository
+    )
+
+    with patch.object(
+        CommentsRepository, "delete_comment", new_callable=AsyncMock
+    ) as mock:
+        mock.side_effect = UnableDeleteEntity
+
+        with pytest.raises(UnableDeleteEntity, match="Unable Delete Entity"):
             await comments_repository.delete_comment(comment_id)
 
         mock.assert_called_once_with(comment_id)
