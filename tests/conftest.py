@@ -111,3 +111,15 @@ def mock_comment_inserted() -> CommentOut:
 @fixture
 def mock_comments_inserted() -> list[CommentOut]:
     return [CommentOut(**comment) for comment in many_comments_data()]
+
+
+@fixture
+def mock_comments_inserted_same_author(
+    mock_user_inserted: UserModel, mock_comments_inserted: list[CommentOut]
+) -> list[CommentOut]:
+    return [
+        CommentOut(
+            **comment.model_dump(exclude="author"), author=mock_user_inserted.username
+        )
+        for comment in mock_comments_inserted
+    ]
