@@ -236,3 +236,26 @@ async def test_get_comments_raise_generic_error(mock_session: AsyncSession):
             await comments_repository.get_comments()
 
         mock.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_get_comment_by_id_return_success(
+    mock_session: AsyncSession, mock_comment_inserted: CommentOut
+):
+    users_repository = AsyncMock()
+
+    posts_repository = AsyncMock()
+
+    comments_repository = CommentsRepository(
+        mock_session, posts_repository, users_repository
+    )
+
+    with patch.object(
+        CommentsRepository, "get_comment_by_id", new_callable=AsyncMock
+    ) as mock:
+        mock.return_value = mock_comment_inserted
+
+        result = await comments_repository.get_comment_by_id(mock_comment_inserted.id)
+
+        mock.assert_called_once_with(mock_comment_inserted.id)
+        assert result == mock_comment_inserted
