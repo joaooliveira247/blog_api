@@ -14,6 +14,7 @@ from blog_api.contrib.errors import (
     DatabaseError,
     GenericError,
     UnableCreateEntity,
+    UnableDeleteEntity,
 )
 from blog_api.schemas.comments import CommentOut
 
@@ -200,4 +201,26 @@ class CommentsRepository(BaseRepository):
                 raise DatabaseError
             except Exception:
                 await self.db.rollback()
+                raise GenericError
+
+    async def delete_comment(self, comment_id: UUID) -> None:
+        async with self.db as session:
+            try:
+                result = await session.execute(
+                    select(CommentModel).filter(CommentModel.id == comment_id)
+                )
+
+                if delete_comment := result.scalars().one_or_none():
+                    await session.delete(delete_comment)
+                    await session.commit()
+                    return
+                raise NoResultFound("comment_id")
+            except OperationalError:
+                await session.rollback()
+                raise DatabaseError
+            except IntegrityError:
+                await session.rollback()
+                raise UnableDeleteEntity
+            except Exception:
+                await session.rollback()
                 raise GenericError
