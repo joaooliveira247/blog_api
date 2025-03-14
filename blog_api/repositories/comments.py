@@ -1,5 +1,5 @@
 from uuid import UUID
-from blog_api.contrib.errors import NoResultFound
+from blog_api.contrib.errors import NoResultFound, NothingToUpdate
 from blog_api.contrib.repositories import BaseRepository
 from blog_api.repositories.posts import PostsRepository
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,7 +10,11 @@ from blog_api.repositories.users import UsersRepository
 from blog_api.models.comments import CommentModel
 from blog_api.models.users import UserModel
 from blog_api.models.posts import PostModel
-from blog_api.contrib.errors import DatabaseError, GenericError, UnableCreateEntity
+from blog_api.contrib.errors import (
+    DatabaseError,
+    GenericError,
+    UnableCreateEntity,
+)
 from blog_api.schemas.comments import CommentOut
 
 
@@ -174,3 +178,26 @@ class CommentsRepository(BaseRepository):
                 )
                 for comment in comments
             ]
+
+    async def update_comment(self, comment_id: UUID, content: str) -> None:
+        async with self.db as session:
+            try:
+                result = await session.execute(
+                    select(CommentModel).filter(CommentModel.id == comment_id)
+                )
+
+                if update_post := result.scalars().one_or_none():
+                    if update_post.content == content:
+                        raise NothingToUpdate
+                    update_post.content = content
+
+                    await session.flush()
+                    await session.commit()
+                    return
+                raise NoResultFound("comment_id")
+            except OperationalError:
+                await self.db.rollback()
+                raise DatabaseError
+            except Exception:
+                await self.db.rollback()
+                raise GenericError
