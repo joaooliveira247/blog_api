@@ -19,6 +19,11 @@ class UnableUpdateEntity(CustomError):
         super().__init__("Unable Update Entity")
 
 
+class NothingToUpdate(CustomError):
+    def __init__(self):
+        super().__init__("Nothing to update")
+
+
 class UnableDeleteEntity(CustomError):
     def __init__(self):
         super().__init__("Unable Delete Entity")
