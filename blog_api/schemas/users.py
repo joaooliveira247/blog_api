@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field, EmailStr, field_validator
 import re
 
+from blog_api.contrib.schemas import OutMixin
+
 
 class BaseUser(BaseModel):
     username: str = Field(..., description="Username", min_length=3, max_length=255)
@@ -19,3 +21,7 @@ class UserIn(BaseUser):
         ):
             raise ValueError("Invalid password format")
         return value
+
+
+class UserOut(BaseUser, OutMixin):
+    role: str = Field(..., description="User Role")
