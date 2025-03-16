@@ -24,3 +24,16 @@ def test_base_user_schema_username_empty():
         "type": err.value.errors()[0]["type"],
         "loc": err.value.errors()[0]["loc"],
     } == {"type": "missing", "loc": ("username",)}
+
+
+def test_base_user_schema_username_lt_3():
+    user: dict[str, Any] = single_user_data()
+    user["username"] = "lt"
+
+    with pytest.raises(ValidationError) as err:
+        BaseUser.model_validate(user)
+
+    assert {
+        "type": err.value.errors()[0]["type"],
+        "loc": err.value.errors()[0]["loc"],
+    } == {"type": "string_too_short", "loc": ("username",)}
