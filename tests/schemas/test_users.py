@@ -63,3 +63,23 @@ def test_base_user_schema_username_invalid_type():
         "type": err.value.errors()[0]["type"],
         "loc": err.value.errors()[0]["loc"],
     } == {"type": "string_type", "loc": ("username",)}
+
+
+def test_base_user_schema_email_value_error():
+    user: dict[str, Any] = single_user_data()
+    user["email"] = "a@a"
+
+    with pytest.raises(ValidationError) as err:
+        BaseUser.model_validate(user)
+
+    print(err.value.errors()[0])
+
+    assert {
+        "type": err.value.errors()[0]["type"],
+        "loc": err.value.errors()[0]["loc"],
+        "msg": err.value.errors()[0]["msg"],
+    } == {
+        "type": "value_error",
+        "loc": ("email",),
+        "msg": "value is not a valid email address: The part after the @-sign is not valid. It should have a period.",
+    }
