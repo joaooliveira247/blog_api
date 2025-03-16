@@ -81,3 +81,21 @@ def test_base_user_schema_email_value_error():
         "loc": ("email",),
         "msg": "value is not a valid email address: The part after the @-sign is not valid. It should have a period.",
     }
+
+
+def test_base_user_schema_email_gt_255():
+    user: dict[str, Any] = single_user_data()
+    user["email"] = f"{'abcd' * 64}@gmail.com"
+
+    with pytest.raises(ValidationError) as err:
+        BaseUser.model_validate(user)
+
+    assert {
+        "type": err.value.errors()[0]["type"],
+        "loc": err.value.errors()[0]["loc"],
+        "msg": err.value.errors()[0]["msg"],
+    } == {
+        "type": "value_error",
+        "loc": ("email",),
+        "msg": "value is not a valid email address: The email address is too long before the @-sign (192 characters too many).",
+    }
