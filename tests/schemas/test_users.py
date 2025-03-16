@@ -50,3 +50,16 @@ def test_base_user_schema_username_gt_255():
         "type": err.value.errors()[0]["type"],
         "loc": err.value.errors()[0]["loc"],
     } == {"type": "string_too_long", "loc": ("username",)}
+
+
+def test_base_user_schema_username_invalid_type():
+    user: dict[str, Any] = single_user_data()
+    user["username"] = 123456
+
+    with pytest.raises(ValidationError) as err:
+        BaseUser.model_validate(user)
+
+    assert {
+        "type": err.value.errors()[0]["type"],
+        "loc": err.value.errors()[0]["loc"],
+    } == {"type": "string_type", "loc": ("username",)}
