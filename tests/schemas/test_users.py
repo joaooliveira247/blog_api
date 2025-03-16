@@ -72,8 +72,6 @@ def test_base_user_schema_email_value_error():
     with pytest.raises(ValidationError) as err:
         BaseUser.model_validate(user)
 
-    print(err.value.errors()[0])
-
     assert {
         "type": err.value.errors()[0]["type"],
         "loc": err.value.errors()[0]["loc"],
