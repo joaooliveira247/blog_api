@@ -1,7 +1,7 @@
 from typing import Any
 
 import pytest
-from blog_api.schemas.users import BaseUser
+from blog_api.schemas.users import BaseUser, UserIn
 from tests.factories import single_user_data
 from pydantic import ValidationError
 
@@ -99,3 +99,11 @@ def test_base_user_schema_email_gt_255():
         "loc": ("email",),
         "msg": "value is not a valid email address: The email address is too long before the @-sign (192 characters too many).",
     }
+
+
+def test_user_in_return_success():
+    user: dict[str, Any] = single_user_data()
+    user["password"] = "Abc@1234"
+    schema = UserIn(**user)
+
+    assert schema.model_dump() == user
