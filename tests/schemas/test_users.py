@@ -107,3 +107,21 @@ def test_user_in_return_success():
     schema = UserIn(**user)
 
     assert schema.model_dump() == user
+
+
+def test_user_in_password_lt_8_raise_validation_error():
+    user: dict[str, Any] = single_user_data()
+    user["password"] = "Abc@123"
+
+    with pytest.raises(ValidationError) as err:
+        UserIn.model_validate(user)
+
+    assert {
+        "type": err.value.errors()[0]["type"],
+        "loc": err.value.errors()[0]["loc"],
+        "msg": err.value.errors()[0]["msg"],
+    } == {
+        "type": "string_too_short",
+        "loc": ("password",),
+        "msg": "String should have at least 8 characters",
+    }
