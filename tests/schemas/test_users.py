@@ -125,3 +125,21 @@ def test_user_in_password_lt_8_raise_validation_error():
         "loc": ("password",),
         "msg": "String should have at least 8 characters",
     }
+
+
+def test_user_in_password_gt_128_raise_validation_error():
+    user: dict[str, Any] = single_user_data()
+    user["password"] = f"Abc@123{'1234' * 64}"
+
+    with pytest.raises(ValidationError) as err:
+        UserIn.model_validate(user)
+
+    assert {
+        "type": err.value.errors()[0]["type"],
+        "loc": err.value.errors()[0]["loc"],
+        "msg": err.value.errors()[0]["msg"],
+    } == {
+        "type": "string_too_long",
+        "loc": ("password",),
+        "msg": "String should have at most 128 characters",
+    }
