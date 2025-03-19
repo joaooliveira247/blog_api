@@ -143,3 +143,21 @@ def test_user_in_password_gt_128_raise_validation_error():
         "loc": ("password",),
         "msg": "String should have at most 128 characters",
     }
+
+
+def test_user_in_password_without_upper_raise_validation_error():
+    user: dict[str, Any] = single_user_data()
+    user["password"] = "abc@1234"
+
+    with pytest.raises(ValidationError) as err:
+        UserIn.model_validate(user)
+
+    assert {
+        "type": err.value.errors()[0]["type"],
+        "loc": err.value.errors()[0]["loc"],
+        "msg": err.value.errors()[0]["msg"],
+    } == {
+        "type": "value_error",
+        "loc": ("password",),
+        "msg": "Value error, Wrong password format! characters missing: upper",
+    }
