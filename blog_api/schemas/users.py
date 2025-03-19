@@ -16,10 +16,25 @@ class UserIn(BaseUser):
 
     @field_validator("password")
     def validate_password(cls, value: str) -> str:
-        if not re.match(
-            r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$", value
-        ):
-            raise ValueError("Invalid password format")
+        pattern = {
+            "lower": r"[a-z]",
+            "upper": r"[A-Z]",
+            "digit": r"\d",
+            "special": r"[@$!%*?&]",
+        }
+
+        components = {
+            key: "".join(re.findall(regex, value)) or None
+            for key, regex in pattern.items()
+        }
+
+        missing_components = [key for key, value in components.items() if value is None]
+
+        if missing_components:
+            raise ValueError(
+                f"Wrong password format! characters missing: {', '.join(missing_components)}"
+            )
+
         return value
 
 
