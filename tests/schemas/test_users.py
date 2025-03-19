@@ -215,3 +215,21 @@ def test_user_in_password_without_lower_raise_validation_error():
         "loc": ("password",),
         "msg": "Value error, Wrong password format! characters missing: lower",
     }
+
+
+def test_user_in_password_without_lower_and_upper_raise_validation_error():
+    user: dict[str, Any] = single_user_data()
+    user["password"] = "4002@8922"
+
+    with pytest.raises(ValidationError) as err:
+        UserIn.model_validate(user)
+
+    assert {
+        "type": err.value.errors()[0]["type"],
+        "loc": err.value.errors()[0]["loc"],
+        "msg": err.value.errors()[0]["msg"],
+    } == {
+        "type": "value_error",
+        "loc": ("password",),
+        "msg": "Value error, Wrong password format! characters missing: lower, upper",
+    }
