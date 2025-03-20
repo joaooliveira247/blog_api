@@ -152,3 +152,8 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
         yield ac
+
+
+@fixture
+def users_url() -> str:
+    return "/users/"
