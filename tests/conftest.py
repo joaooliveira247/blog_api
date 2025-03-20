@@ -2,7 +2,9 @@ from typing import AsyncGenerator
 from pytest import fixture
 from uuid import UUID, uuid4
 from unittest.mock import AsyncMock
+from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession
+from blog_api.commands.app import app
 from blog_api.core.security import gen_hash
 from blog_api.models.comments import CommentModel
 from blog_api.models.users import UserModel
@@ -142,3 +144,11 @@ def mock_comments_inserted_same_post(
 @fixture
 def mock_comment_update() -> str:
     return single_comment_update()
+
+
+@fixture
+async def client() -> AsyncGenerator[AsyncClient, None]:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
+        yield ac
