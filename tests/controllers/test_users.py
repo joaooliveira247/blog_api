@@ -1,9 +1,11 @@
 from typing import Any
 from unittest.mock import AsyncMock, patch
 from uuid import UUID
-from httpx import AsyncClient
-from fastapi import status
+
+from pydantic import ValidationError
 import pytest
+from fastapi import status
+from httpx import AsyncClient
 
 from blog_api.contrib.errors import DatabaseError, GenericError, UnableCreateEntity
 from blog_api.models.users import UserModel
@@ -29,6 +31,30 @@ async def test_create_user_return_201_created(
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json() == {"id": str(user_id)}
+
+
+@pytest.mark.asyncio
+async def test_create_user_return_422_invalid_request_body(
+    client: AsyncClient, mock_user: UserModel, users_url: str
+):
+    user_body: dict[str, Any] = {
+        "username": mock_user.username,
+        "email": mock_user.email,
+        "password": "12345678",
+    }
+
+    with patch.object(
+        UsersRepository, "create_user", new_callable=AsyncMock
+    ) as mock_create_user:
+        mock_create_user.side_effect = ValidationError
+
+        response = await client.post(users_url, json=user_body)
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert (
+            response.json()["detail"][0]["msg"]
+            == "Value error, Wrong password format! characters missing: lower, upper, special"
+        )
 
 
 @pytest.mark.asyncio
