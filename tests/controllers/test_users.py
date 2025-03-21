@@ -5,7 +5,7 @@ from httpx import AsyncClient
 from fastapi import status
 import pytest
 
-from blog_api.contrib.errors import DatabaseError, UnableCreateEntity
+from blog_api.contrib.errors import DatabaseError, GenericError, UnableCreateEntity
 from blog_api.models.users import UserModel
 from blog_api.repositories.users import UsersRepository
 
@@ -73,3 +73,23 @@ async def test_create_user_return_409_conflict_unable_create_entity(
         assert response.json() == {
             "detail": "Unable Create Entity: Field value already exists"
         }
+
+
+@pytest.mark.asyncio
+async def test_create_user_return_500_internal_server_error_generic(
+    client: AsyncClient, mock_user: UserModel, users_url: str
+):
+    user_body: dict[str, Any] = {
+        "username": mock_user.username,
+        "email": mock_user.email,
+        "password": "Abc@1234",
+    }
+
+    with patch.object(
+        UsersRepository, "create_user", new_callable=AsyncMock
+    ) as mock_create_user:
+        mock_create_user.side_effect = GenericError
+
+        response = await client.post(users_url, json=user_body)
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
