@@ -24,11 +24,11 @@ async def test_create_user_success(
 
     mock_session.commit.side_effect = lambda: setattr(mock_user, "id", user_id)
 
-    await repository.create_user(mock_user)
+    user_id_returned = await repository.create_user(mock_user)
 
     mock_session.add.assert_called_once_with(mock_user)
     mock_session.commit.assert_called_once()
-    assert mock_user.id == user_id
+    assert user_id_returned == user_id
 
 
 @pytest.mark.asyncio
