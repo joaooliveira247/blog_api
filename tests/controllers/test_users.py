@@ -5,6 +5,7 @@ from httpx import AsyncClient
 from fastapi import status
 import pytest
 
+from blog_api.contrib.errors import DatabaseError
 from blog_api.models.users import UserModel
 from blog_api.repositories.users import UsersRepository
 
@@ -28,3 +29,24 @@ async def test_create_user_return_201_created(
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json() == {"id": str(user_id)}
+
+
+@pytest.mark.asyncio
+async def test_create_user_return_500_internal_server_error(
+    client: AsyncClient, mock_user: UserModel, user_id: UUID, users_url: str
+):
+    user_body: dict[str, Any] = {
+        "username": mock_user.username,
+        "email": mock_user.email,
+        "password": "Abc@1234",
+    }
+
+    with patch.object(
+        UsersRepository, "create_user", new_callable=AsyncMock
+    ) as mock_create_user:
+        mock_create_user.side_effect = DatabaseError
+
+        response = await client.post(users_url, json=user_body)
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"detail": "Database integrity error"}
