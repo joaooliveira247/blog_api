@@ -32,8 +32,8 @@ async def test_create_user_return_201_created(
 
 
 @pytest.mark.asyncio
-async def test_create_user_return_500_internal_server_error(
-    client: AsyncClient, mock_user: UserModel, user_id: UUID, users_url: str
+async def test_create_user_return_500_internal_server_error_database_error(
+    client: AsyncClient, mock_user: UserModel, users_url: str
 ):
     user_body: dict[str, Any] = {
         "username": mock_user.username,
