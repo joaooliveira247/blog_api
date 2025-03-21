@@ -18,11 +18,12 @@ class UsersRepository(BaseRepository):
     def __init__(self, db: AsyncSession):
         super().__init__(db)
 
-    async def create_user(self, user: UserModel):
+    async def create_user(self, user: UserModel) -> UUID:
         try:
             self.db.add(user)
             await self.db.flush()
             await self.db.commit()
+            return user.id
         except OperationalError:
             await self.db.rollback()
             raise DatabaseError
