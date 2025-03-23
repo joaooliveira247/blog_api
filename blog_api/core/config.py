@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     DB_HOST: str
     DB_PORT: str
     DB_NAME: str
+    CACHE_PASSWORD: str
+    CACHE_HOST: str
+    CACHE_PORT: str
 
     @property
     def postgres_dsn(self) -> str:
