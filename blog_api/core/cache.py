@@ -10,3 +10,8 @@ async def get_cache_connection() -> AsyncGenerator[Redis, None]:
         yield client
     finally:
         client.close()
+
+
+class Cache:
+    def __init__(self, cache_conn: Redis):
+        self.cache_conn = cache_conn
