@@ -37,6 +37,11 @@ class NoResultFound(CustomError):
         super().__init__(message)
 
 
+class CacheError(CustomError):
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 class GenericError(CustomError):
     def __init__(self):
         super().__init__("Generic Error")
