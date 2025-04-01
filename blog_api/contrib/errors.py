@@ -42,6 +42,11 @@ class CacheError(CustomError):
         super().__init__(message)
 
 
+class EncodingError(CustomError):
+    def __init__(self):
+        super().__init__("Error when try encoding one object")
+
+
 class GenericError(CustomError):
     def __init__(self):
         super().__init__("Generic Error")
