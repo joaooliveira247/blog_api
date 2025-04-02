@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import AsyncGenerator
 from pytest import fixture
 from uuid import UUID, uuid4
@@ -11,6 +12,7 @@ from blog_api.models.users import UserModel
 from blog_api.models.posts import PostModel
 from blog_api.schemas.comments import CommentOut
 from blog_api.schemas.posts import PostOut
+from blog_api.schemas.users import UserOut
 from tests.factories import (
     comment_data,
     many_comments_data,
@@ -77,6 +79,16 @@ def mock_post(user_id: UUID) -> PostModel:
 @fixture
 def mock_user_inserted(hashed_password: str, user_id: UUID) -> UserModel:
     return UserModel(**single_user_data(), password=hashed_password, id=user_id)
+
+
+@fixture
+def mock_user_out_inserted(mock_user_inserted) -> UserOut:
+    return UserOut(
+        **mock_user_inserted.__dict__,
+        role="user",
+        created_at=datetime.now().timestamp(),
+        updated_at=datetime.now().timestamp(),
+    )
 
 
 @fixture
