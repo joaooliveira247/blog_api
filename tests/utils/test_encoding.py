@@ -1,6 +1,7 @@
 import json
 
 from blog_api.utils.encoding import encode_pydantic_model
+from blog_api.models.users import UserModel
 
 
 def test_encode_pydantic_model_success(mock_user_out_inserted):
@@ -20,3 +21,8 @@ def test_encode_pydantic_model_success(mock_user_out_inserted):
 def test_encode_pydandtic_model_return_empty_list():
     encoded = encode_pydantic_model(list())
     assert encoded == "[]"
+
+
+def test_encode_pydantic_model_return_none():
+    encoded = encode_pydantic_model(UserModel())
+    assert encoded is None
