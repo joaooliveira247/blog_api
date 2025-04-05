@@ -1,4 +1,5 @@
 import json
+
 from blog_api.utils.encoding import encode_pydantic_model
 
 
@@ -14,3 +15,8 @@ def test_encode_pydantic_model_success(mock_user_out_inserted):
     }
 
     assert encoded == json.dumps(assert_item)
+
+
+def test_encode_pydandtic_model_return_empty_list():
+    encoded = encode_pydantic_model(list())
+    assert encoded == "[]"
