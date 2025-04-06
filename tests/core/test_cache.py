@@ -17,3 +17,20 @@ async def test_add_cache_one_model_return_success(mock_session, mock_user_out_in
         encode_pydantic_model(mock_user_out_inserted),
         ex=360,
     )
+
+
+@pytest.mark.asyncio
+async def test_add_cache_many_models_return_success(
+    mock_session, mock_users_out_inserted
+):
+    mock_session.set = AsyncMock(return_value=None)
+
+    cache = Cache(mock_session)
+
+    await cache.add("user:all", mock_users_out_inserted)
+
+    mock_session.set.assert_awaited_once_with(
+        "user:all",
+        encode_pydantic_model(mock_users_out_inserted),
+        ex=360,
+    )
