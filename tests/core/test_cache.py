@@ -39,7 +39,9 @@ async def test_add_cache_many_models_return_success(
 
 
 @pytest.mark.asyncio
-async def test_add_cache_return_cache_error(mock_session, mock_user_out_inserted):
+async def test_add_cache_connection_error_return_cache_error(
+    mock_session, mock_user_out_inserted
+):
     mock_session.set = AsyncMock(side_effect=ConnectionError)
 
     cache = Cache(mock_session)
