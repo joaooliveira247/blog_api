@@ -31,6 +31,6 @@ class Cache:
         try:
             await self.cache_conn.set(key, encode_pydantic_model(value), ex=360)
         except (ConnectionError, TimeoutError, AuthenticationError, DataError) as e:
-            raise CacheError(e)
+            raise CacheError(e.__class__.__name__)
         except TypeError:
             raise EncodingError
