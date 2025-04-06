@@ -92,6 +92,18 @@ def mock_user_out_inserted(mock_user_inserted) -> UserOut:
 
 
 @fixture
+def mock_users_out_inserted() -> list[UserOut]:
+    return [
+        UserOut(
+            **user,
+            created_at=datetime.now().timestamp(),
+            updated_at=datetime.now().timestamp(),
+        )
+        for user in many_users_data()
+    ]
+
+
+@fixture
 def mock_users_inserted() -> list[UserModel]:
     users = [UserModel(**user) for user in many_users_data()]
 
