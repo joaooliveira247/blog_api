@@ -46,7 +46,7 @@ async def test_add_cache_connection_error_return_cache_error(
 
     cache = Cache(mock_session)
 
-    with pytest.raises(CacheError):
+    with pytest.raises(CacheError, match="ConnectionError"):
         await cache.add(f"user:{mock_user_out_inserted.id}", mock_user_out_inserted)
 
     mock_session.set.assert_called_once_with(
