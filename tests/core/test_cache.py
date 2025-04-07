@@ -3,7 +3,7 @@ import pytest
 from blog_api.contrib.errors import CacheError
 from blog_api.core.cache import Cache
 from blog_api.utils.encoding import encode_pydantic_model
-from redis.exceptions import ConnectionError, TimeoutError
+from redis.exceptions import ConnectionError, TimeoutError, AuthenticationError
 
 
 @pytest.mark.asyncio
@@ -65,6 +65,24 @@ async def test_add_cache_timeout_error_return_cache_error(
     cache = Cache(mock_session)
 
     with pytest.raises(CacheError, match="TimeoutError"):
+        await cache.add(f"user:{mock_user_out_inserted.id}", mock_user_out_inserted)
+
+    mock_session.set.assert_called_once_with(
+        f"user:{mock_user_out_inserted.id}",
+        encode_pydantic_model(mock_user_out_inserted),
+        ex=360,
+    )
+
+
+@pytest.mark.asyncio
+async def test_add_cache_authentication_error_return_cache_error(
+    mock_session, mock_user_out_inserted
+):
+    mock_session.set = AsyncMock(side_effect=AuthenticationError)
+
+    cache = Cache(mock_session)
+
+    with pytest.raises(CacheError, match="AuthenticationError"):
         await cache.add(f"user:{mock_user_out_inserted.id}", mock_user_out_inserted)
 
     mock_session.set.assert_called_once_with(
