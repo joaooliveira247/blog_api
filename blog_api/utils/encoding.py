@@ -39,3 +39,20 @@ def encode_pydantic_model(model: BaseModel | list[BaseModel]) -> str | None:
             return json.dumps(models)
         case _:
             return None
+
+
+def decode_pydantic_model(
+    string: str, decode_model: BaseModel
+) -> BaseModel | list[BaseModel] | None:
+    decode_obj: dict[str, Any] | list[dict[str, Any]] = json.loads(string)
+
+    match decode_obj:
+        case dict():
+            return decode_model.model_validate(__transform_str_in_type(decode_obj))
+        case list():
+            return [
+                decode_model.model_validate(__transform_str_in_type(obj))
+                for obj in decode_obj
+            ]
+        case _:
+            return None
