@@ -12,7 +12,17 @@ def __transform_type_in_str(map: dict[str, Any]) -> dict[str, str]:
             case UUID():
                 map[k] = str(v)
             case datetime():
-                map[k] = v.strftime("%d/%m/%Y, %H:%M:%S")
+                map[k] = v.isoformat()
+
+    return map
+
+
+def __transform_str_in_type(
+    map: dict[str, Any],
+) -> dict[str, str]:
+    for k, v in map.items():
+        if k == "created_at" or k == "updated_at":
+            map[k] = datetime.fromisoformat(v)
 
     return map
 
