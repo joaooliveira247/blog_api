@@ -1,5 +1,5 @@
 from typing import AsyncGenerator
-import pydantic
+from pydantic import BaseModel
 from redis.asyncio import ConnectionPool, Redis
 from redis.exceptions import (
     ConnectionError,
@@ -25,9 +25,7 @@ class Cache:
     def __init__(self, cache_conn: Redis):
         self.cache_conn = cache_conn
 
-    async def add(
-        self, key: str, value: pydantic.BaseModel | list[pydantic.BaseModel]
-    ) -> None:
+    async def add(self, key: str, value: BaseModel | list[BaseModel]) -> None:
         try:
             await self.cache_conn.set(key, encode_pydantic_model(value), ex=360)
         except (ConnectionError, TimeoutError, AuthenticationError, DataError) as e:
