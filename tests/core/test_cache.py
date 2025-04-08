@@ -127,3 +127,18 @@ async def test_get_one_model_success(mock_session, mock_user_out_inserted):
     mock_session.get.assert_called_once_with(f"user:{mock_user_out_inserted.id}")
 
     assert result == mock_user_out_inserted
+
+
+@pytest.mark.asyncio
+async def test_get_many_models_success(mock_session, mock_users_out_inserted):
+    mock_session.get = AsyncMock(
+        return_value=encode_pydantic_model(mock_users_out_inserted)
+    )
+
+    cache = Cache(mock_session)
+
+    result = await cache.get("user:all", UserOut)
+
+    mock_session.get.assert_called_once_with("user:all")
+
+    assert result == mock_users_out_inserted
