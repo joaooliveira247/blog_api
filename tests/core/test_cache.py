@@ -142,3 +142,18 @@ async def test_get_many_models_success(mock_session, mock_users_out_inserted):
     mock_session.get.assert_called_once_with("user:all")
 
     assert result == mock_users_out_inserted
+
+
+@pytest.mark.asyncio
+async def test_get_one_model_return_none(mock_session, mock_users_out_inserted):
+    mock_session.get = AsyncMock(return_value=None)
+
+    cache = Cache(mock_session)
+
+    result = await cache.get("user:9345098b-99a3-4494-862d-9cf77d25fe7d", UserOut)
+
+    mock_session.get.assert_called_once_with(
+        "user:9345098b-99a3-4494-862d-9cf77d25fe7d"
+    )
+
+    assert result is None
