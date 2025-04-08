@@ -35,3 +35,11 @@ def test_decode_single_pydantic_model_success(mock_user_out_inserted):
     decode_obj = decode_pydantic_model(encoded_obj, UserOut)
 
     assert decode_obj == mock_user_out_inserted
+
+
+def test_decode_many_pydantic_models_success(mock_users_out_inserted):
+    encoded_obj = encode_pydantic_model(mock_users_out_inserted)
+
+    decode_obj = decode_pydantic_model(encoded_obj, UserOut)
+
+    assert decode_obj == mock_users_out_inserted
