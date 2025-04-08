@@ -42,9 +42,9 @@ def encode_pydantic_model(model: BaseModel | list[BaseModel]) -> str | None:
 
 
 def decode_pydantic_model(
-    string: str, decode_model: BaseModel
+    string: str | None, decode_model: BaseModel
 ) -> BaseModel | list[BaseModel] | None:
-    if len(string) < 1:
+    if string is None or len(string) < 1:
         return None
     decode_obj: dict[str, Any] | list[dict[str, Any]] = json.loads(string)
 
