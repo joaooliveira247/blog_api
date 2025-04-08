@@ -171,3 +171,17 @@ async def test_get_connection_error_return_cache_error(mock_session, user_id):
     mock_session.get.assert_called_once_with(
         f"user:{user_id}",
     )
+
+
+@pytest.mark.asyncio
+async def test_get_timeout_error_return_cache_error(mock_session, user_id):
+    mock_session.get = AsyncMock(side_effect=TimeoutError)
+
+    cache = Cache(mock_session)
+
+    with pytest.raises(CacheError, match="TimeoutError"):
+        await cache.get(f"user:{user_id}", UserOut)
+
+    mock_session.get.assert_called_once_with(
+        f"user:{user_id}",
+    )
