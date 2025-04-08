@@ -199,3 +199,17 @@ async def test_get_authentication_error_return_cache_error(mock_session, user_id
     mock_session.get.assert_called_once_with(
         f"user:{user_id}",
     )
+
+
+@pytest.mark.asyncio
+async def test_get_data_error_return_cache_error(mock_session, user_id):
+    mock_session.get = AsyncMock(side_effect=DataError)
+
+    cache = Cache(mock_session)
+
+    with pytest.raises(CacheError, match="DataError"):
+        await cache.get(f"user:{user_id}", UserOut)
+
+    mock_session.get.assert_called_once_with(
+        f"user:{user_id}",
+    )
