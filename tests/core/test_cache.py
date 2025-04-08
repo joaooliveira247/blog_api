@@ -234,7 +234,7 @@ async def test_get_data_error_return_cache_error(mock_session, user_id):
 
 
 @pytest.mark.asyncio
-async def test_get_non_mapped_exception_return_cache_error(mock_session, user_id):
+async def test_get_non_mapped_exception_return_generic_error(mock_session, user_id):
     mock_session.get = AsyncMock(side_effect=Exception)
 
     cache = Cache(mock_session)
