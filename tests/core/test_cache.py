@@ -9,6 +9,7 @@ from redis.exceptions import (
     AuthenticationError,
     DataError,
 )
+from blog_api.schemas.users import UserOut
 
 
 @pytest.mark.asyncio
@@ -111,3 +112,18 @@ async def test_add_data_error_return_cache_error(mock_session, mock_user_out_ins
         encode_pydantic_model(mock_user_out_inserted),
         ex=360,
     )
+
+
+@pytest.mark.asyncio
+async def test_get_one_model_success(mock_session, mock_user_out_inserted):
+    mock_session.get = AsyncMock(
+        return_value=encode_pydantic_model(mock_user_out_inserted)
+    )
+
+    cache = Cache(mock_session)
+
+    result = await cache.get(f"user:{mock_user_out_inserted.id}", UserOut)
+
+    mock_session.get.assert_called_once_with(f"user:{mock_user_out_inserted.id}")
+
+    assert result == mock_user_out_inserted
