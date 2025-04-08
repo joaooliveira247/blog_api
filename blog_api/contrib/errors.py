@@ -48,5 +48,6 @@ class EncodingError(CustomError):
 
 
 class GenericError(CustomError):
-    def __init__(self):
-        super().__init__("Generic Error")
+    def __init__(self, message: str | None = None):
+        custom_message = message if message else "Generic Error"
+        super().__init__(custom_message)

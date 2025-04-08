@@ -7,7 +7,7 @@ from redis.exceptions import (
     AuthenticationError,
     DataError,
 )
-from blog_api.contrib.errors import CacheError, EncodingError
+from blog_api.contrib.errors import CacheError, EncodingError, GenericError
 from blog_api.core.config import settings
 from blog_api.utils.encoding import encode_pydantic_model, decode_pydantic_model
 
@@ -32,6 +32,8 @@ class Cache:
             raise CacheError(e.__class__.__name__)
         except TypeError:
             raise EncodingError
+        except Exception as e:
+            raise GenericError(e.__class__.__name__)
 
     async def get(
         self, key: str, decode_model: BaseModel
@@ -44,3 +46,5 @@ class Cache:
             return models
         except (ConnectionError, TimeoutError, AuthenticationError, DataError) as e:
             raise CacheError(e.__class__.__name__)
+        except Exception as e:
+            raise GenericError(e.__class__.__name__)
