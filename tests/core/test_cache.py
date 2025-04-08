@@ -1,6 +1,6 @@
 from unittest.mock import AsyncMock
 import pytest
-from blog_api.contrib.errors import CacheError
+from blog_api.contrib.errors import CacheError, GenericError
 from blog_api.core.cache import Cache
 from blog_api.utils.encoding import encode_pydantic_model
 from redis.exceptions import (
@@ -208,6 +208,20 @@ async def test_get_data_error_return_cache_error(mock_session, user_id):
     cache = Cache(mock_session)
 
     with pytest.raises(CacheError, match="DataError"):
+        await cache.get(f"user:{user_id}", UserOut)
+
+    mock_session.get.assert_called_once_with(
+        f"user:{user_id}",
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_non_mapped_exception_return_cache_error(mock_session, user_id):
+    mock_session.get = AsyncMock(side_effect=Exception)
+
+    cache = Cache(mock_session)
+
+    with pytest.raises(GenericError, match="Exception"):
         await cache.get(f"user:{user_id}", UserOut)
 
     mock_session.get.assert_called_once_with(
