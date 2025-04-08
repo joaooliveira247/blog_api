@@ -115,6 +115,24 @@ async def test_add_data_error_return_cache_error(mock_session, mock_user_out_ins
 
 
 @pytest.mark.asyncio
+async def test_add_non_mapped_exception_return_generic_error(
+    mock_session, mock_user_out_inserted
+):
+    mock_session.set = AsyncMock(side_effect=Exception)
+
+    cache = Cache(mock_session)
+
+    with pytest.raises(GenericError, match="Exception"):
+        await cache.add(f"user:{mock_user_out_inserted.id}", mock_user_out_inserted)
+
+    mock_session.set.assert_called_once_with(
+        f"user:{mock_user_out_inserted.id}",
+        encode_pydantic_model(mock_user_out_inserted),
+        ex=360,
+    )
+
+
+@pytest.mark.asyncio
 async def test_get_one_model_success(mock_session, mock_user_out_inserted):
     mock_session.get = AsyncMock(
         return_value=encode_pydantic_model(mock_user_out_inserted)
