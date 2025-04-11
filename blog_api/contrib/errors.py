@@ -47,6 +47,12 @@ class EncodingError(CustomError):
         super().__init__("Error when try encoding one object")
 
 
+class TokenError(CustomError):
+    def __init__(self, message: str | None):
+        custom_msg = f"Token Error: {message}" if message else "Token Error"
+        super().__init__(custom_msg)
+
+
 class GenericError(CustomError):
     def __init__(self, message: str | None = None):
         custom_message = message if message else "Generic Error"
