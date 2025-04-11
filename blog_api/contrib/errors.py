@@ -48,12 +48,12 @@ class EncodingError(CustomError):
 
 
 class TokenError(CustomError):
-    def __init__(self, message: str | None):
-        custom_msg = f"Token Error: {message}" if message else "Token Error"
+    def __init__(self, message: Exception | None = None):
+        custom_msg = f"Token Error: {str(message)}" if message else "Token Error"
         super().__init__(custom_msg)
 
 
 class GenericError(CustomError):
-    def __init__(self, message: str | None = None):
-        custom_message = message if message else "Generic Error"
+    def __init__(self, message: Exception | None = None):
+        custom_message = str(message) if message else "Generic Error"
         super().__init__(custom_message)
