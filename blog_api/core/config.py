@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from os import getenv
+from functools import lru_cache
 
 
 class Settings(BaseSettings):
@@ -31,3 +32,8 @@ class Settings(BaseSettings):
         env_file=".env.test" if getenv("PYTEST_CURRENT_TEST") else ".env",
         env_file_encoding="utf-8",
     )
+
+
+@lru_cache
+def get_settings():
+    return Settings()
