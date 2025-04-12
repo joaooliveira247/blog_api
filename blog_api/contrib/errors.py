@@ -54,6 +54,6 @@ class TokenError(CustomError):
 
 
 class GenericError(CustomError):
-    def __init__(self, message: Exception | None = None):
+    def __init__(self, message: Exception | str | None = None):
         custom_message = str(message) if message else "Generic Error"
         super().__init__(custom_message)

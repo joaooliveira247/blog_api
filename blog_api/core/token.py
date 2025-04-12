@@ -4,7 +4,9 @@ from typing import Any
 import jwt
 from blog_api.contrib.errors import GenericError, TokenError
 from blog_api.models.users import UserModel
-from blog_api.core.config import settings
+from blog_api.core.config import get_settings
+
+settings = get_settings()
 
 
 def gen_jwt(life_time: float, user: UserModel) -> str:

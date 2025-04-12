@@ -8,8 +8,10 @@ from redis.exceptions import (
     DataError,
 )
 from blog_api.contrib.errors import CacheError, EncodingError, GenericError
-from blog_api.core.config import settings
+from blog_api.core.config import get_settings
 from blog_api.utils.encoding import encode_pydantic_model, decode_pydantic_model
+
+settings = get_settings()
 
 
 async def get_cache_connection() -> AsyncGenerator[Redis, None]:
