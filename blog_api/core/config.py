@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from os import getenv
 
 
 class Settings(BaseSettings):
@@ -27,7 +28,8 @@ class Settings(BaseSettings):
         return f"redis://:{self.CACHE_PASSWORD}@{self.CACHE_HOST}:{self.API_PORT}/0"
 
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", case_sensitive=True
+        env_file=".env.test" if getenv("PYTEST_CURRENT_TEST") else ".env",
+        env_file_encoding="utf-8",
     )
 
 
