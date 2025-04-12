@@ -31,6 +31,3 @@ class Settings(BaseSettings):
         env_file=".env.test" if getenv("PYTEST_CURRENT_TEST") else ".env",
         env_file_encoding="utf-8",
     )
-
-
-settings = Settings()
