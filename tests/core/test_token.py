@@ -1,4 +1,4 @@
-from blog_api.core.token import gen_jwt
+from blog_api.core.token import gen_jwt, verify_jwt
 
 
 def test_gen_jwt(mock_user_inserted):
@@ -6,3 +6,14 @@ def test_gen_jwt(mock_user_inserted):
 
     assert isinstance(token, str)
     assert len(token) > 0
+
+
+def test_verify_jwt_success(mock_user_inserted):
+    mock_user_inserted.role = "user"
+    token = gen_jwt(90, mock_user_inserted)
+
+    token_dict = verify_jwt(token)
+
+    assert isinstance(token_dict, dict)
+    assert token_dict["sub"] == str(mock_user_inserted.id)
+    assert token_dict["role"] == "user"
