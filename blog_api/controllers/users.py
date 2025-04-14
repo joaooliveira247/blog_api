@@ -7,10 +7,10 @@ from blog_api.schemas.response import UserCreatedSchema
 from blog_api.contrib.errors import UnableCreateEntity, DatabaseError, GenericError
 
 
-users_controller = APIRouter(tags=["users"])
+users_controller = APIRouter(tags=["account"])
 
 
-@users_controller.post("/", status_code=status.HTTP_201_CREATED)
+@users_controller.post("/sign-up", status_code=status.HTTP_201_CREATED)
 async def create_user(
     db: DatabaseDependency,  # type: ignore
     body: UserIn = Body(...),  # type: ignore
