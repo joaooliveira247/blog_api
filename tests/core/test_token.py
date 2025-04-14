@@ -1,5 +1,6 @@
+from unittest.mock import patch
 from pytest import raises
-from blog_api.contrib.errors import TokenError
+from blog_api.contrib.errors import GenericError, TokenError
 from blog_api.core.token import gen_jwt, verify_jwt
 
 
@@ -31,3 +32,11 @@ def test_verify_jwt_raise_expired_signature_error(mock_user_inserted):
 def test_verify_jwt_raise_token_error():
     with raises(TokenError, match="Token Error: Not enough segments"):
         verify_jwt("12345")
+
+
+def test_verify_jwt_raise_generic_erorr():
+    with patch(
+        "blog_api.core.token.jwt.decode", side_effect=Exception("unmapped error")
+    ):
+        with raises(GenericError, match="unmapped error"):
+            verify_jwt("12345")
