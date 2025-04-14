@@ -181,8 +181,3 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
 @fixture
 def account_url() -> str:
     return "/account"
-
-
-@fixture
-def mock_jwt_secret_key() -> str:
-    return "S>$7Vosp<23b0r(Cd7^,og~"
