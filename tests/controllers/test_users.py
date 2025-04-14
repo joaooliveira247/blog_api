@@ -14,7 +14,7 @@ from blog_api.repositories.users import UsersRepository
 
 @pytest.mark.asyncio
 async def test_create_user_return_201_created(
-    client: AsyncClient, mock_user: UserModel, user_id: UUID, users_url: str
+    client: AsyncClient, mock_user: UserModel, user_id: UUID, account_url: str
 ):
     user_body: dict[str, Any] = {
         "username": mock_user.username,
@@ -27,7 +27,7 @@ async def test_create_user_return_201_created(
     ) as mock_create_user:
         mock_create_user.return_value = user_id
 
-        response = await client.post(users_url, json=user_body)
+        response = await client.post(f"{account_url}/sign-up", json=user_body)
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json() == {"id": str(user_id)}
@@ -35,7 +35,7 @@ async def test_create_user_return_201_created(
 
 @pytest.mark.asyncio
 async def test_create_user_return_422_invalid_request_body(
-    client: AsyncClient, mock_user: UserModel, users_url: str
+    client: AsyncClient, mock_user: UserModel, account_url: str
 ):
     user_body: dict[str, Any] = {
         "username": mock_user.username,
@@ -48,7 +48,7 @@ async def test_create_user_return_422_invalid_request_body(
     ) as mock_create_user:
         mock_create_user.side_effect = ValidationError
 
-        response = await client.post(users_url, json=user_body)
+        response = await client.post(f"{account_url}/sign-up", json=user_body)
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert (
@@ -59,7 +59,7 @@ async def test_create_user_return_422_invalid_request_body(
 
 @pytest.mark.asyncio
 async def test_create_user_return_500_internal_server_error_database_error(
-    client: AsyncClient, mock_user: UserModel, users_url: str
+    client: AsyncClient, mock_user: UserModel, account_url: str
 ):
     user_body: dict[str, Any] = {
         "username": mock_user.username,
@@ -72,7 +72,7 @@ async def test_create_user_return_500_internal_server_error_database_error(
     ) as mock_create_user:
         mock_create_user.side_effect = DatabaseError
 
-        response = await client.post(users_url, json=user_body)
+        response = await client.post(f"{account_url}/sign-up", json=user_body)
 
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"detail": "Database integrity error"}
@@ -80,7 +80,7 @@ async def test_create_user_return_500_internal_server_error_database_error(
 
 @pytest.mark.asyncio
 async def test_create_user_return_409_conflict_unable_create_entity(
-    client: AsyncClient, mock_user: UserModel, users_url: str
+    client: AsyncClient, mock_user: UserModel, account_url: str
 ):
     user_body: dict[str, Any] = {
         "username": mock_user.username,
@@ -93,7 +93,7 @@ async def test_create_user_return_409_conflict_unable_create_entity(
     ) as mock_create_user:
         mock_create_user.side_effect = UnableCreateEntity
 
-        response = await client.post(users_url, json=user_body)
+        response = await client.post(f"{account_url}/sign-up", json=user_body)
 
         assert response.status_code == status.HTTP_409_CONFLICT
         assert response.json() == {
@@ -103,7 +103,7 @@ async def test_create_user_return_409_conflict_unable_create_entity(
 
 @pytest.mark.asyncio
 async def test_create_user_return_500_internal_server_error_generic(
-    client: AsyncClient, mock_user: UserModel, users_url: str
+    client: AsyncClient, mock_user: UserModel, account_url: str
 ):
     user_body: dict[str, Any] = {
         "username": mock_user.username,
@@ -116,6 +116,6 @@ async def test_create_user_return_500_internal_server_error_generic(
     ) as mock_create_user:
         mock_create_user.side_effect = GenericError
 
-        response = await client.post(users_url, json=user_body)
+        response = await client.post(f"{account_url}/sign-up", json=user_body)
 
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
