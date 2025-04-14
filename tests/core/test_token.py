@@ -26,3 +26,8 @@ def test_verify_jwt_raise_expired_signature_error(mock_user_inserted):
 
     with raises(TokenError, match="Token Error: Signature has expired."):
         verify_jwt(token)
+
+
+def test_verify_jwt_raise_token_error():
+    with raises(TokenError, match="Token Error: Not enough segments"):
+        verify_jwt("12345")
