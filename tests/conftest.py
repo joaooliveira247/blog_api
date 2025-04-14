@@ -179,8 +179,8 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
 
 
 @fixture
-def users_url() -> str:
-    return "/users/"
+def account_url() -> str:
+    return "/account"
 
 
 @fixture
