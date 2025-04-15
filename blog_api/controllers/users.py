@@ -1,5 +1,5 @@
 from fastapi import APIRouter, status, Body, HTTPException
-from blog_api.core.dependencies import DatabaseDependency
+from blog_api.dependencies.dependencies import DatabaseDependency
 from blog_api.repositories.users import UsersRepository
 from blog_api.models.users import UserModel
 from blog_api.schemas.users import UserIn
