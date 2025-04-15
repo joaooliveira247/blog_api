@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Blog API"
     API_HOST: str = "localhost"
     API_PORT: int = 5432
-    API_PATH: str = "/api/"
+    API_PATH: str = "/api"
 
     DB_USER: str
     DB_PASSWORD: str
