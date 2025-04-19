@@ -7,3 +7,8 @@ class CreatedSchemaMixin(BaseModel):
 
 
 class UserCreatedSchema(CreatedSchemaMixin): ...
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
