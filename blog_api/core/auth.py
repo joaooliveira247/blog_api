@@ -1,6 +1,5 @@
 from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
-from blog_api.schemas.users import UserOut
 from blog_api.repositories.users import UsersRepository
 from blog_api.models.users import UserModel
 from blog_api.contrib.errors import InvalidResource
@@ -11,7 +10,7 @@ async def authenticate(
     db: AsyncSession,
     email: EmailStr,
     passwd: str,
-) -> UserOut:
+) -> UserModel:
     user_repository = UsersRepository(db)
 
     user = await user_repository.get_user_by_query(UserModel(email=email))
