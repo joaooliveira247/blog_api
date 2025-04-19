@@ -20,6 +20,7 @@ class Settings(BaseSettings):
 
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
+    JWT_DEFAULT_LIFE_TIME: float = 360
 
     @property
     def postgres_dsn(self) -> str:
