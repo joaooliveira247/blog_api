@@ -53,6 +53,11 @@ class TokenError(CustomError):
         super().__init__(custom_msg)
 
 
+class InvalidResource(CustomError):
+    def __init__(self, message: str | None):
+        super().__init__(f"{message} invalid" if message else "invalid Resource")
+
+
 class GenericError(CustomError):
     def __init__(self, message: Exception | str | None = None):
         custom_message = str(message) if message else "Generic Error"
