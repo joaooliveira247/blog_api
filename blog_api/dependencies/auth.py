@@ -25,6 +25,10 @@ async def get_current_user(
         user_repository = UsersRepository(db)
         user = await user_repository.get_user_by_id(user_id)
 
+        if user is None:
+            credencial_exception.detail = "User can't be authenticated"
+            raise credencial_exception
+
         return UserOut(**user.__dict__)
 
     except TokenError as e:
@@ -33,3 +37,19 @@ async def get_current_user(
     except GenericError as e:
         credencial_exception.detail = e.message
         raise credencial_exception
+
+
+# async def authenticate(
+#     email: EmailStr, passwd: str, db: AsyncSession
+# ) -> UserModel | None:
+#     user_repository = UsersRepository(db)
+
+#     user = await user_repository.get_user_by_query(UserModel(email=email))
+
+#     if not user:
+#         return None
+
+#     if not check_password(passwd, user.password):
+#         return None
+
+#     return user
