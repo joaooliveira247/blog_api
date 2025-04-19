@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, patch
+from fastapi import HTTPException
 import pytest
 from blog_api.core.token import gen_jwt
 from blog_api.dependencies.auth import get_current_user
@@ -39,3 +40,19 @@ async def test_get_current_user_success(mock_session, mock_user_out_inserted):
 
         mock_jwt.assert_called_once_with(jwt)
         mock_user.assert_called_once_with(str(mock_user_out_inserted.id))
+
+
+@pytest.mark.asyncio
+async def test_get_current_user_raise_http_exception_invalid_payload(
+    mock_session, mock_user_out_inserted
+):
+    user = UserModel(**mock_user_out_inserted.model_dump())
+    jwt = gen_jwt(360, user)
+
+    with patch(
+        "blog_api.dependencies.auth.verify_jwt",
+        return_value=None,
+    ) as mock_jwt:
+        with pytest.raises(HTTPException, match="401: User can't be authenticated"):
+            await get_current_user(mock_session, token=jwt)
+        mock_jwt.assert_called_once_with(jwt)
