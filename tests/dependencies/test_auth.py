@@ -56,3 +56,35 @@ async def test_get_current_user_raise_http_exception_invalid_payload(
         with pytest.raises(HTTPException, match="401: User can't be authenticated"):
             await get_current_user(mock_session, token=jwt)
         mock_jwt.assert_called_once_with(jwt)
+
+
+@pytest.mark.asyncio
+async def test_get_current_user_raise_http_exception_user_not_exists(
+    mock_session, mock_user_out_inserted
+):
+    user = UserModel(**mock_user_out_inserted.model_dump())
+    jwt = gen_jwt(360, user)
+
+    payload = {
+        "sub": str(user.id),
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=360),
+        "iat": datetime.now(timezone.utc),
+        "role": user.role,
+    }
+
+    with (
+        patch(
+            "blog_api.dependencies.auth.verify_jwt",
+            return_value=payload,
+        ) as mock_jwt,
+        patch.object(
+            UsersRepository,
+            "get_user_by_id",
+            new=AsyncMock(return_value=None),
+        ) as mock_user,
+    ):
+        with pytest.raises(HTTPException, match="401: User can't be authenticated"):
+            await get_current_user(mock_session, token=jwt)
+
+        mock_jwt.assert_called_once_with(jwt)
+        mock_user.assert_called_once_with(str(mock_user_out_inserted.id))
