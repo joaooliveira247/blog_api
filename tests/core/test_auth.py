@@ -18,7 +18,7 @@ async def test_authenticate_success(
         "get_user_by_query",
         new=AsyncMock(return_value=user),
     ) as mock_user:
-        result = await authenticate(mock_user_inserted.email, password, mock_session)
+        result = await authenticate(mock_session, mock_user_inserted.email, password)
 
         assert isinstance(result, UserModel)
         assert result.email == user.email
