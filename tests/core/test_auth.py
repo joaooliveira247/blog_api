@@ -1,6 +1,7 @@
 from unittest.mock import AsyncMock, patch
 import pytest
 
+from blog_api.contrib.errors import InvalidResource
 from blog_api.core.auth import authenticate
 from blog_api.models.users import UserModel
 from blog_api.repositories.users import UsersRepository
@@ -22,5 +23,20 @@ async def test_authenticate_success(
 
         assert isinstance(result, UserModel)
         assert result.email == user.email
+
+        mock_user.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_authenticate_raise_invalid_email(
+    mock_session, mock_user_inserted, password
+):
+    with patch.object(
+        UsersRepository,
+        "get_user_by_query",
+        new=AsyncMock(return_value=None),
+    ) as mock_user:
+        with pytest.raises(InvalidResource, match="email invalid"):
+            await authenticate(mock_user_inserted.email, password, mock_session)
 
         mock_user.assert_called_once()
