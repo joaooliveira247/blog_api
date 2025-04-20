@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, patch
 from fastapi import HTTPException
 import pytest
 from blog_api.core.token import gen_jwt
-from blog_api.dependencies.auth import authenticate, get_current_user
+from blog_api.dependencies.auth import get_current_user
 from blog_api.models.users import UserModel
 from blog_api.repositories.users import UsersRepository
 from blog_api.schemas.users import UserOut
@@ -88,23 +88,3 @@ async def test_get_current_user_raise_http_exception_user_not_exists(
 
         mock_jwt.assert_called_once_with(jwt)
         mock_user.assert_called_once_with(str(mock_user_out_inserted.id))
-
-
-@pytest.mark.asyncio
-async def test_authenticate_success(
-    mock_session, mock_user_inserted, mock_user_out_inserted, password
-):
-    user = UserModel(
-        **mock_user_out_inserted.model_dump(), password=mock_user_inserted.password
-    )
-    with patch.object(
-        UsersRepository,
-        "get_user_by_query",
-        new=AsyncMock(return_value=user),
-    ) as mock_user:
-        result = await authenticate(mock_user_inserted.email, password, mock_session)
-
-        assert isinstance(result, UserOut)
-        assert result.email == user.email
-
-        mock_user.assert_called_once()
