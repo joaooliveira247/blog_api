@@ -40,3 +40,23 @@ async def test_authenticate_raise_invalid_email(
             await authenticate(mock_user_inserted.email, password, mock_session)
 
         mock_user.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_authenticate_raise_invalid_password(
+    mock_session,
+    mock_user_inserted,
+    mock_user_out_inserted,
+):
+    user = UserModel(
+        **mock_user_out_inserted.model_dump(), password=mock_user_inserted.password
+    )
+    with patch.object(
+        UsersRepository,
+        "get_user_by_query",
+        new=AsyncMock(return_value=user),
+    ) as mock_user:
+        with pytest.raises(InvalidResource, match="password invalid"):
+            await authenticate(mock_session, mock_user_inserted.email, "123456")
+
+        mock_user.assert_called_once()
