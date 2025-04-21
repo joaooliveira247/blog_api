@@ -326,3 +326,27 @@ async def test_get_current_user_return_401_unauthorized(
     assert result.json() == {"detail": "User can't be authenticated"}
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_get_current_user_return_401_unauthorized_token_error(
+    client: AsyncClient, account_url: str, mock_user
+):
+    jwt = gen_jwt(360, mock_user)
+
+    async def override_get_current_user_error():
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token Error",
+        )
+
+    app.dependency_overrides[get_current_user] = override_get_current_user_error
+
+    result = await client.get(
+        f"{account_url}/", headers={"Authorization": f"Bearer {jwt}"}
+    )
+
+    assert result.status_code == status.HTTP_401_UNAUTHORIZED
+    assert result.json() == {"detail": "Token Error"}
+
+    app.dependency_overrides.clear()
