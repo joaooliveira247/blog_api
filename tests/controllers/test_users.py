@@ -299,6 +299,7 @@ async def test_get_current_user_200_success(
     )
 
     assert result.status_code == status.HTTP_200_OK
+    assert result.json()["email"] == mock_user_out_inserted.email
 
     app.dependency_overrides.clear()
 
