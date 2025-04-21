@@ -10,6 +10,7 @@ from httpx import AsyncClient
 from blog_api.contrib.errors import (
     DatabaseError,
     GenericError,
+    InvalidResource,
     TokenError,
     UnableCreateEntity,
 )
@@ -209,3 +210,27 @@ async def test_login_return_500_internal_server_error_token_error(
 
         mock_authenticate.assert_awaited_once_with(ANY, mock_user.email, password)
         mock_jwt.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_login_return_400_bad_request_invalid_email(
+    client: AsyncClient, account_url: str, password, mock_user
+):
+    login_body: dict[str, Any] = {"username": mock_user.email, "password": password}
+
+    with patch(
+        "blog_api.controllers.users.authenticate",
+        new_callable=AsyncMock,
+    ) as mock_authenticate:
+        mock_authenticate.side_effect = InvalidResource("email")
+
+        result = await client.post(
+            f"{account_url}/sign-in",
+            data=login_body,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+
+        assert result.status_code == status.HTTP_400_BAD_REQUEST
+        assert result.json() == {"detail": "email invalid"}
+
+        mock_authenticate.assert_awaited_once_with(ANY, mock_user.email, password)
