@@ -234,3 +234,27 @@ async def test_login_return_400_bad_request_invalid_email(
         assert result.json() == {"detail": "email invalid"}
 
         mock_authenticate.assert_awaited_once_with(ANY, mock_user.email, password)
+
+
+@pytest.mark.asyncio
+async def test_login_return_400_bad_request_invalid_password(
+    client: AsyncClient, account_url: str, password, mock_user
+):
+    login_body: dict[str, Any] = {"username": mock_user.email, "password": password}
+
+    with patch(
+        "blog_api.controllers.users.authenticate",
+        new_callable=AsyncMock,
+    ) as mock_authenticate:
+        mock_authenticate.side_effect = InvalidResource("password")
+
+        result = await client.post(
+            f"{account_url}/sign-in",
+            data=login_body,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+
+        assert result.status_code == status.HTTP_400_BAD_REQUEST
+        assert result.json() == {"detail": "password invalid"}
+
+        mock_authenticate.assert_awaited_once_with(ANY, mock_user.email, password)
