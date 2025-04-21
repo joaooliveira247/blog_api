@@ -7,7 +7,12 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
-from blog_api.contrib.errors import DatabaseError, GenericError, UnableCreateEntity
+from blog_api.contrib.errors import (
+    DatabaseError,
+    GenericError,
+    TokenError,
+    UnableCreateEntity,
+)
 from blog_api.core.token import gen_jwt
 from blog_api.models.users import UserModel
 from blog_api.repositories.users import UsersRepository
@@ -175,3 +180,32 @@ async def test_login_return_500_internal_server_error_database_error(
         assert result.json() == {"detail": "Database integrity error"}
 
         mock_authenticate.assert_awaited_once_with(ANY, mock_user.email, password)
+
+
+@pytest.mark.asyncio
+async def test_login_return_500_internal_server_error_token_error(
+    client: AsyncClient, account_url: str, password, mock_user
+):
+    login_body: dict[str, Any] = {"username": mock_user.email, "password": password}
+
+    with (
+        patch(
+            "blog_api.controllers.users.authenticate",
+            new_callable=AsyncMock,
+        ) as mock_authenticate,
+        patch("blog_api.controllers.users.gen_jwt") as mock_jwt,
+    ):
+        mock_authenticate.return_value = mock_user
+        mock_jwt.side_effect = TokenError
+
+        result = await client.post(
+            f"{account_url}/sign-in",
+            data=login_body,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert result.json() == {"detail": "Token Error"}
+
+        mock_authenticate.assert_awaited_once_with(ANY, mock_user.email, password)
+        mock_jwt.assert_called_once()
