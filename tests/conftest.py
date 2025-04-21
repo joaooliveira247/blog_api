@@ -68,7 +68,7 @@ def comment_id() -> UUID:
 
 @fixture
 def mock_user(hashed_password: str) -> UserModel:
-    return UserModel(**single_user_data(), password=hashed_password)
+    return UserModel(**single_user_data(), password=hashed_password, role="user")
 
 
 @fixture
