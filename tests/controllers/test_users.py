@@ -151,3 +151,27 @@ async def test_login_200_success(
 
         mock_authenticate.assert_awaited_once_with(ANY, mock_user.email, password)
         mock_jwt.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_login_return_500_internal_server_error_database_error(
+    client: AsyncClient, account_url: str, password, mock_user
+):
+    login_body: dict[str, Any] = {"username": mock_user.email, "password": password}
+
+    with patch(
+        "blog_api.controllers.users.authenticate",
+        new_callable=AsyncMock,
+    ) as mock_authenticate:
+        mock_authenticate.side_effect = DatabaseError
+
+        result = await client.post(
+            f"{account_url}/sign-in",
+            data=login_body,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert result.json() == {"detail": "Database integrity error"}
+
+        mock_authenticate.assert_awaited_once_with(ANY, mock_user.email, password)
