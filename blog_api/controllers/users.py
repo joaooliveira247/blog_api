@@ -3,10 +3,11 @@ from fastapi.security import OAuth2PasswordRequestForm
 from blog_api.core.auth import authenticate
 from blog_api.core.config import get_settings
 from blog_api.core.token import gen_jwt
+from blog_api.dependencies.auth import get_current_user
 from blog_api.dependencies.dependencies import DatabaseDependency
 from blog_api.repositories.users import UsersRepository
 from blog_api.models.users import UserModel
-from blog_api.schemas.users import UserIn
+from blog_api.schemas.users import UserIn, UserOut
 from blog_api.schemas.response import TokenResponse, UserCreatedSchema
 from blog_api.contrib.errors import (
     InvalidResource,
@@ -65,3 +66,8 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
         )
+
+
+@users_controller.get("/", status_code=status.HTTP_200_OK)
+async def get_logged_user(user: UserOut = Depends(get_current_user)) -> UserOut:
+    return user
