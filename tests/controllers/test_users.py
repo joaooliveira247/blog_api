@@ -15,8 +15,10 @@ from blog_api.contrib.errors import (
     UnableCreateEntity,
 )
 from blog_api.core.token import gen_jwt
+from blog_api.dependencies.auth import get_current_user
 from blog_api.models.users import UserModel
 from blog_api.repositories.users import UsersRepository
+from blog_api.commands.app import app
 
 
 @pytest.mark.asyncio
@@ -282,3 +284,20 @@ async def test_login_return_500_internal_server_error_generic_error(
         assert result.json() == {"detail": "Generic Error"}
 
         mock_authenticate.assert_awaited_once_with(ANY, mock_user.email, password)
+
+
+@pytest.mark.asyncio
+async def test_get_current_user_200_success(
+    client: AsyncClient, account_url: str, mock_user_out_inserted, mock_user
+):
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    result = await client.get(
+        f"{account_url}/", headers={"Authorization": f"Bearer {jwt}"}
+    )
+
+    assert result.status_code == status.HTTP_200_OK
+
+    app.dependency_overrides.clear()
