@@ -1,5 +1,5 @@
 from typing import Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, patch, ANY
 from uuid import UUID
 
 from pydantic import ValidationError
@@ -8,6 +8,7 @@ from fastapi import status
 from httpx import AsyncClient
 
 from blog_api.contrib.errors import DatabaseError, GenericError, UnableCreateEntity
+from blog_api.core.token import gen_jwt
 from blog_api.models.users import UserModel
 from blog_api.repositories.users import UsersRepository
 
@@ -119,3 +120,34 @@ async def test_create_user_return_500_internal_server_error_generic(
         response = await client.post(f"{account_url}/sign-up", json=user_body)
 
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+@pytest.mark.asyncio
+async def test_login_200_success(
+    client: AsyncClient, account_url: str, password, mock_user
+):
+    login_body: dict[str, Any] = {"username": mock_user.email, "password": password}
+
+    jwt = gen_jwt(360, mock_user)
+
+    with (
+        patch(
+            "blog_api.controllers.users.authenticate",
+            new_callable=AsyncMock,
+        ) as mock_authenticate,
+        patch("blog_api.controllers.users.gen_jwt") as mock_jwt,
+    ):
+        mock_authenticate.return_value = mock_user
+        mock_jwt.return_value = jwt
+
+        result = await client.post(
+            f"{account_url}/sign-in",
+            data=login_body,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+
+        assert result.status_code == status.HTTP_200_OK
+        assert result.json() == {"access_token": jwt, "token_type": "bearer"}
+
+        mock_authenticate.assert_awaited_once_with(ANY, mock_user.email, password)
+        mock_jwt.assert_called_once()
