@@ -179,5 +179,10 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
 
 
 @fixture
+async def cache_session() -> AsyncGenerator[AsyncMock, None]:
+    yield AsyncMock()
+
+
+@fixture
 def account_url() -> str:
     return "/account"
