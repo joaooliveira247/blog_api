@@ -10,7 +10,9 @@ from blog_api.schemas.users import UserOut
 
 
 @pytest.mark.asyncio
-async def test_get_current_user_success(mock_session, mock_user_out_inserted):
+async def test_get_current_user_success(
+    mock_session, cache_session, mock_user_out_inserted
+):
     user = UserModel(**mock_user_out_inserted.model_dump())
     jwt = gen_jwt(360, user)
 
@@ -32,7 +34,7 @@ async def test_get_current_user_success(mock_session, mock_user_out_inserted):
             new=AsyncMock(return_value=user),
         ) as mock_user,
     ):
-        result = await get_current_user(mock_session, token=jwt)
+        result = await get_current_user(mock_session, cache_session, token=jwt)
 
         assert isinstance(result, UserOut)
         assert result.id == mock_user_out_inserted.id
@@ -44,7 +46,7 @@ async def test_get_current_user_success(mock_session, mock_user_out_inserted):
 
 @pytest.mark.asyncio
 async def test_get_current_user_raise_http_exception_invalid_payload(
-    mock_session, mock_user_out_inserted
+    mock_session, cache_session, mock_user_out_inserted
 ):
     user = UserModel(**mock_user_out_inserted.model_dump())
     jwt = gen_jwt(360, user)
@@ -54,13 +56,13 @@ async def test_get_current_user_raise_http_exception_invalid_payload(
         return_value=None,
     ) as mock_jwt:
         with pytest.raises(HTTPException, match="401: User can't be authenticated"):
-            await get_current_user(mock_session, token=jwt)
+            await get_current_user(mock_session, cache_session, token=jwt)
         mock_jwt.assert_called_once_with(jwt)
 
 
 @pytest.mark.asyncio
 async def test_get_current_user_raise_http_exception_user_not_exists(
-    mock_session, mock_user_out_inserted
+    mock_session, cache_session, mock_user_out_inserted
 ):
     user = UserModel(**mock_user_out_inserted.model_dump())
     jwt = gen_jwt(360, user)
@@ -84,7 +86,7 @@ async def test_get_current_user_raise_http_exception_user_not_exists(
         ) as mock_user,
     ):
         with pytest.raises(HTTPException, match="401: User can't be authenticated"):
-            await get_current_user(mock_session, token=jwt)
+            await get_current_user(mock_session, cache_session, token=jwt)
 
         mock_jwt.assert_called_once_with(jwt)
         mock_user.assert_called_once_with(str(mock_user_out_inserted.id))
