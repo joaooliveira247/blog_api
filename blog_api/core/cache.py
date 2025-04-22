@@ -1,4 +1,4 @@
-from typing import AsyncGenerator
+from typing import AsyncGenerator, TypeVar, Type
 from pydantic import BaseModel
 from redis.asyncio import ConnectionPool, Redis
 from redis.exceptions import (
@@ -14,6 +14,9 @@ from blog_api.utils.encoding import encode_pydantic_model, decode_pydantic_model
 settings = get_settings()
 
 
+T = TypeVar("T", bound=BaseModel)
+
+
 async def get_cache_connection() -> AsyncGenerator[Redis, None]:
     pool = ConnectionPool.from_url(settings.redis_dsn)
     client = Redis(connection_pool=pool)
@@ -27,7 +30,7 @@ class Cache:
     def __init__(self, cache_conn: Redis):
         self.cache_conn = cache_conn
 
-    async def add(self, key: str, value: BaseModel | list[BaseModel]) -> None:
+    async def add(self, key: str, value: Type[T] | list[T]) -> None:
         try:
             await self.cache_conn.set(key, encode_pydantic_model(value), ex=360)
         except (ConnectionError, TimeoutError, AuthenticationError, DataError) as e:
@@ -37,9 +40,7 @@ class Cache:
         except Exception as e:
             raise GenericError(e.__class__.__name__)
 
-    async def get(
-        self, key: str, decode_model: BaseModel
-    ) -> BaseModel | list[BaseModel] | None:
+    async def get(self, key: str, decode_model: Type[T]) -> T | list[T] | None:
         try:
             cache_string = await self.cache_conn.get(key)
 
