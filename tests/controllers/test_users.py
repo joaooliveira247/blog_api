@@ -405,3 +405,27 @@ async def test_update_password_204_success(
         assert result.text == ""
 
         user_mock.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_update_password_422_invalid_password_format(
+    mock_user,
+    client: AsyncClient,
+    account_url,
+    mock_user_out_inserted,
+):
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    result = await client.put(
+        f"{account_url}/password",
+        json={"password": "A12346789"},
+        headers={"Authorization": f"Bearer {jwt}"},
+    )
+
+    assert result.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert (
+        result.json()["detail"][0]["msg"]
+        == "Value error, Wrong password format! characters missing: lower, special"
+    )
