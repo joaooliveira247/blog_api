@@ -13,6 +13,7 @@ from blog_api.contrib.errors import (
     InvalidResource,
     TokenError,
     UnableCreateEntity,
+    UnableDeleteEntity,
     UnableUpdateEntity,
 )
 from blog_api.core.token import gen_jwt
@@ -609,6 +610,30 @@ async def test_delete_user_204_success(
 
         assert result.status_code == status.HTTP_204_NO_CONTENT
         assert result.text == ""
+
+        user_mock.assert_awaited_once()
+
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_delete_user_500_unable_delete_entity(
+    mock_user, client: AsyncClient, account_url, mock_user_out_inserted
+):
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.object(
+        UsersRepository, "delete_user", new=AsyncMock(side_effect=UnableDeleteEntity)
+    ) as user_mock:
+        result = await client.delete(
+            f"{account_url}/",
+            headers={"Authorization": f"Bearer {jwt}"},
+        )
+
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert result.json() == {"detail": "Unable Delete Entity"}
 
         user_mock.assert_awaited_once()
 
