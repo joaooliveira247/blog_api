@@ -589,3 +589,27 @@ async def test_update_password_500_generic_error(
 
         user_mock.assert_awaited_once()
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_delete_user_204_success(
+    mock_user, client: AsyncClient, account_url, mock_user_out_inserted
+):
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.object(
+        UsersRepository, "delete_user", new=AsyncMock(return_value=None)
+    ) as user_mock:
+        result = await client.delete(
+            f"{account_url}/",
+            headers={"Authorization": f"Bearer {jwt}"},
+        )
+
+        assert result.status_code == status.HTTP_204_NO_CONTENT
+        assert result.text == ""
+
+        user_mock.assert_awaited_once()
+
+    app.dependency_overrides.clear()
