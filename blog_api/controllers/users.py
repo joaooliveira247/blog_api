@@ -93,7 +93,7 @@ async def update_password(
 
         if check_password(form.password, user_db.password):
             raise HTTPException(
-                status_code=status.HTTP_204_NO_CONTENT,
+                status_code=status.HTTP_409_CONFLICT,
                 detail="New password cannot be the same as current password",
             )
 
