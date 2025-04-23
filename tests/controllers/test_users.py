@@ -456,7 +456,7 @@ async def test_update_password_401_user_not_found(
 
 
 @pytest.mark.asyncio
-async def test_update_password_204_same_password(
+async def test_update_password_409_same_password(
     mock_user,
     client: AsyncClient,
     account_url,
