@@ -453,3 +453,30 @@ async def test_update_password_401_user_not_found(
 
         assert result.status_code == status.HTTP_401_UNAUTHORIZED
         assert result.json() == {"detail": "User not found"}
+
+
+@pytest.mark.asyncio
+async def test_update_password_204_same_password(
+    mock_user,
+    client: AsyncClient,
+    account_url,
+    mock_user_out_inserted,
+    password,
+):
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.object(
+        UsersRepository, "get_user_by_id", new=AsyncMock(return_value=mock_user)
+    ):
+        result = await client.put(
+            f"{account_url}/password",
+            json={"password": password},
+            headers={"Authorization": f"Bearer {jwt}"},
+        )
+
+        assert result.status_code == status.HTTP_409_CONFLICT
+        assert result.json() == {
+            "detail": "New password cannot be the same as current password"
+        }
