@@ -43,3 +43,6 @@ class UserIn(BaseUser, PasswordMixin): ...
 
 class UserOut(BaseUser, OutMixin):
     role: str = Field(..., description="User Role")
+
+
+class PasswordUpdate(PasswordMixin): ...
