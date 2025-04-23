@@ -16,6 +16,7 @@ from blog_api.contrib.errors import (
     UnableCreateEntity,
     DatabaseError,
     GenericError,
+    UnableDeleteEntity,
     UnableUpdateEntity,
 )
 
@@ -102,6 +103,28 @@ async def update_password(
         return None
 
     except (DatabaseError, UnableUpdateEntity) as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+    except GenericError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+
+
+@users_controller.delete("/", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(
+    db: DatabaseDependency,  # type: ignore
+    user: UserOut = Depends(get_current_user),
+) -> None:
+    repository: UsersRepository = UsersRepository(db)
+
+    try:
+        await repository.delete_user(user.id)
+
+        return None
+
+    except (DatabaseError, UnableDeleteEntity) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
         )
