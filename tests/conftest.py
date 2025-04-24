@@ -186,3 +186,8 @@ async def cache_session() -> AsyncGenerator[AsyncMock, None]:
 @fixture
 def account_url() -> str:
     return "/account"
+
+
+@fixture
+def admin_url() -> str:
+    return "/admin"
