@@ -6,5 +6,5 @@ from blog_api.urls import api_router
 settings = get_settings()
 
 app = FastAPI(title=settings.PROJECT_NAME)
-add_pagination(app)
 app.include_router(api_router)
+add_pagination(app)
