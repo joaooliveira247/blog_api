@@ -25,7 +25,11 @@ from blog_api.commands.app import app
 
 @pytest.mark.asyncio
 async def test_create_user_return_201_created(
-    client: AsyncClient, mock_user: UserModel, user_id: UUID, account_url: str
+    client: AsyncClient,
+    mock_user: UserModel,
+    user_id: UUID,
+    account_url: str,
+    user_agent,
 ):
     user_body: dict[str, Any] = {
         "username": mock_user.username,
@@ -38,7 +42,9 @@ async def test_create_user_return_201_created(
     ) as mock_create_user:
         mock_create_user.return_value = user_id
 
-        response = await client.post(f"{account_url}/sign-up", json=user_body)
+        response = await client.post(
+            f"{account_url}/sign-up", json=user_body, headers={"User-Agent": user_agent}
+        )
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json() == {"id": str(user_id)}
@@ -134,7 +140,7 @@ async def test_create_user_return_500_internal_server_error_generic(
 
 @pytest.mark.asyncio
 async def test_login_200_success(
-    client: AsyncClient, account_url: str, password, mock_user
+    client: AsyncClient, account_url: str, password, mock_user, user_agent
 ):
     login_body: dict[str, Any] = {"username": mock_user.email, "password": password}
 
@@ -153,7 +159,10 @@ async def test_login_200_success(
         result = await client.post(
             f"{account_url}/sign-in",
             data=login_body,
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_200_OK
@@ -290,14 +299,15 @@ async def test_login_return_500_internal_server_error_generic_error(
 
 @pytest.mark.asyncio
 async def test_get_current_user_200_success(
-    client: AsyncClient, account_url: str, mock_user_out_inserted, mock_user
+    client: AsyncClient, account_url: str, mock_user_out_inserted, mock_user, user_agent
 ):
     jwt = gen_jwt(360, mock_user)
 
     app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
 
     result = await client.get(
-        f"{account_url}/", headers={"Authorization": f"Bearer {jwt}"}
+        f"{account_url}/",
+        headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
     )
 
     assert result.status_code == status.HTTP_200_OK
@@ -380,10 +390,7 @@ async def test_get_current_user_return_401_unauthorized_generic_error(
 
 @pytest.mark.asyncio
 async def test_update_password_204_success(
-    mock_user,
-    client: AsyncClient,
-    account_url,
-    mock_user_out_inserted,
+    mock_user, client: AsyncClient, account_url, mock_user_out_inserted, user_agent
 ):
     jwt = gen_jwt(360, mock_user)
 
@@ -400,7 +407,7 @@ async def test_update_password_204_success(
         result = await client.put(
             f"{account_url}/password",
             json={"password": "Abc4@6789"},
-            headers={"Authorization": f"Bearer {jwt}"},
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_204_NO_CONTENT
@@ -594,7 +601,7 @@ async def test_update_password_500_generic_error(
 
 @pytest.mark.asyncio
 async def test_delete_user_204_success(
-    mock_user, client: AsyncClient, account_url, mock_user_out_inserted
+    mock_user, client: AsyncClient, account_url, mock_user_out_inserted, user_agent
 ):
     jwt = gen_jwt(360, mock_user)
 
@@ -605,7 +612,7 @@ async def test_delete_user_204_success(
     ) as user_mock:
         result = await client.delete(
             f"{account_url}/",
-            headers={"Authorization": f"Bearer {jwt}"},
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_204_NO_CONTENT
