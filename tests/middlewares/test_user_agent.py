@@ -25,3 +25,11 @@ async def test_user_agent_empty_return_400_bad_request(client: AsyncClient):
 
     assert result.status_code == status.HTTP_400_BAD_REQUEST
     assert result.json() == {"detail": "User-Agent empty"}
+
+
+@pytest.mark.asyncio
+async def test_user_agent_blocked_return_403_forbidden(client: AsyncClient):
+    result = await client.get("/")
+
+    assert result.status_code == status.HTTP_403_FORBIDDEN
+    assert result.json() == {"detail": "User-Agent blocked"}
