@@ -52,7 +52,7 @@ async def test_create_user_return_201_created(
 
 @pytest.mark.asyncio
 async def test_create_user_return_422_invalid_request_body(
-    client: AsyncClient, mock_user: UserModel, account_url: str
+    client: AsyncClient, mock_user: UserModel, account_url: str, user_agent
 ):
     user_body: dict[str, Any] = {
         "username": mock_user.username,
@@ -65,7 +65,9 @@ async def test_create_user_return_422_invalid_request_body(
     ) as mock_create_user:
         mock_create_user.side_effect = ValidationError
 
-        response = await client.post(f"{account_url}/sign-up", json=user_body)
+        response = await client.post(
+            f"{account_url}/sign-up", json=user_body, headers={"User-Agent": user_agent}
+        )
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert (
@@ -76,7 +78,7 @@ async def test_create_user_return_422_invalid_request_body(
 
 @pytest.mark.asyncio
 async def test_create_user_return_500_internal_server_error_database_error(
-    client: AsyncClient, mock_user: UserModel, account_url: str
+    client: AsyncClient, mock_user: UserModel, account_url: str, user_agent
 ):
     user_body: dict[str, Any] = {
         "username": mock_user.username,
@@ -89,7 +91,9 @@ async def test_create_user_return_500_internal_server_error_database_error(
     ) as mock_create_user:
         mock_create_user.side_effect = DatabaseError
 
-        response = await client.post(f"{account_url}/sign-up", json=user_body)
+        response = await client.post(
+            f"{account_url}/sign-up", json=user_body, headers={"User-Agent": user_agent}
+        )
 
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"detail": "Database integrity error"}
@@ -97,7 +101,7 @@ async def test_create_user_return_500_internal_server_error_database_error(
 
 @pytest.mark.asyncio
 async def test_create_user_return_409_conflict_unable_create_entity(
-    client: AsyncClient, mock_user: UserModel, account_url: str
+    client: AsyncClient, mock_user: UserModel, account_url: str, user_agent
 ):
     user_body: dict[str, Any] = {
         "username": mock_user.username,
@@ -110,7 +114,9 @@ async def test_create_user_return_409_conflict_unable_create_entity(
     ) as mock_create_user:
         mock_create_user.side_effect = UnableCreateEntity
 
-        response = await client.post(f"{account_url}/sign-up", json=user_body)
+        response = await client.post(
+            f"{account_url}/sign-up", json=user_body, headers={"User-Agent": user_agent}
+        )
 
         assert response.status_code == status.HTTP_409_CONFLICT
         assert response.json() == {
@@ -120,7 +126,7 @@ async def test_create_user_return_409_conflict_unable_create_entity(
 
 @pytest.mark.asyncio
 async def test_create_user_return_500_internal_server_error_generic(
-    client: AsyncClient, mock_user: UserModel, account_url: str
+    client: AsyncClient, mock_user: UserModel, account_url: str, user_agent
 ):
     user_body: dict[str, Any] = {
         "username": mock_user.username,
@@ -133,7 +139,9 @@ async def test_create_user_return_500_internal_server_error_generic(
     ) as mock_create_user:
         mock_create_user.side_effect = GenericError
 
-        response = await client.post(f"{account_url}/sign-up", json=user_body)
+        response = await client.post(
+            f"{account_url}/sign-up", json=user_body, headers={"User-Agent": user_agent}
+        )
 
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
@@ -174,7 +182,7 @@ async def test_login_200_success(
 
 @pytest.mark.asyncio
 async def test_login_return_500_internal_server_error_database_error(
-    client: AsyncClient, account_url: str, password, mock_user
+    client: AsyncClient, account_url: str, password, mock_user, user_agent
 ):
     login_body: dict[str, Any] = {"username": mock_user.email, "password": password}
 
@@ -187,7 +195,10 @@ async def test_login_return_500_internal_server_error_database_error(
         result = await client.post(
             f"{account_url}/sign-in",
             data=login_body,
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -198,7 +209,7 @@ async def test_login_return_500_internal_server_error_database_error(
 
 @pytest.mark.asyncio
 async def test_login_return_500_internal_server_error_token_error(
-    client: AsyncClient, account_url: str, password, mock_user
+    client: AsyncClient, account_url: str, password, mock_user, user_agent
 ):
     login_body: dict[str, Any] = {"username": mock_user.email, "password": password}
 
@@ -215,7 +226,10 @@ async def test_login_return_500_internal_server_error_token_error(
         result = await client.post(
             f"{account_url}/sign-in",
             data=login_body,
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -227,7 +241,7 @@ async def test_login_return_500_internal_server_error_token_error(
 
 @pytest.mark.asyncio
 async def test_login_return_400_bad_request_invalid_email(
-    client: AsyncClient, account_url: str, password, mock_user
+    client: AsyncClient, account_url: str, password, mock_user, user_agent
 ):
     login_body: dict[str, Any] = {"username": mock_user.email, "password": password}
 
@@ -240,7 +254,10 @@ async def test_login_return_400_bad_request_invalid_email(
         result = await client.post(
             f"{account_url}/sign-in",
             data=login_body,
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_400_BAD_REQUEST
@@ -251,7 +268,7 @@ async def test_login_return_400_bad_request_invalid_email(
 
 @pytest.mark.asyncio
 async def test_login_return_400_bad_request_invalid_password(
-    client: AsyncClient, account_url: str, password, mock_user
+    client: AsyncClient, account_url: str, password, mock_user, user_agent
 ):
     login_body: dict[str, Any] = {"username": mock_user.email, "password": password}
 
@@ -264,7 +281,10 @@ async def test_login_return_400_bad_request_invalid_password(
         result = await client.post(
             f"{account_url}/sign-in",
             data=login_body,
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_400_BAD_REQUEST
@@ -275,7 +295,7 @@ async def test_login_return_400_bad_request_invalid_password(
 
 @pytest.mark.asyncio
 async def test_login_return_500_internal_server_error_generic_error(
-    client: AsyncClient, account_url: str, password, mock_user
+    client: AsyncClient, account_url: str, password, mock_user, user_agent
 ):
     login_body: dict[str, Any] = {"username": mock_user.email, "password": password}
 
@@ -288,7 +308,10 @@ async def test_login_return_500_internal_server_error_generic_error(
         result = await client.post(
             f"{account_url}/sign-in",
             data=login_body,
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -318,7 +341,7 @@ async def test_get_current_user_200_success(
 
 @pytest.mark.asyncio
 async def test_get_current_user_return_401_unauthorized(
-    client: AsyncClient, account_url: str, mock_user
+    client: AsyncClient, account_url: str, mock_user, user_agent
 ):
     jwt = gen_jwt(360, mock_user)
 
@@ -331,7 +354,8 @@ async def test_get_current_user_return_401_unauthorized(
     app.dependency_overrides[get_current_user] = override_get_current_user_error
 
     result = await client.get(
-        f"{account_url}/", headers={"Authorization": f"Bearer {jwt}"}
+        f"{account_url}/",
+        headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
     )
 
     assert result.status_code == status.HTTP_401_UNAUTHORIZED
@@ -342,7 +366,7 @@ async def test_get_current_user_return_401_unauthorized(
 
 @pytest.mark.asyncio
 async def test_get_current_user_return_401_unauthorized_token_error(
-    client: AsyncClient, account_url: str, mock_user
+    client: AsyncClient, account_url: str, mock_user, user_agent
 ):
     jwt = gen_jwt(360, mock_user)
 
@@ -355,7 +379,8 @@ async def test_get_current_user_return_401_unauthorized_token_error(
     app.dependency_overrides[get_current_user] = override_get_current_user_error
 
     result = await client.get(
-        f"{account_url}/", headers={"Authorization": f"Bearer {jwt}"}
+        f"{account_url}/",
+        headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
     )
 
     assert result.status_code == status.HTTP_401_UNAUTHORIZED
@@ -366,7 +391,7 @@ async def test_get_current_user_return_401_unauthorized_token_error(
 
 @pytest.mark.asyncio
 async def test_get_current_user_return_401_unauthorized_generic_error(
-    client: AsyncClient, account_url: str, mock_user
+    client: AsyncClient, account_url: str, mock_user, user_agent
 ):
     jwt = gen_jwt(360, mock_user)
 
@@ -379,7 +404,8 @@ async def test_get_current_user_return_401_unauthorized_generic_error(
     app.dependency_overrides[get_current_user] = override_get_current_user_error
 
     result = await client.get(
-        f"{account_url}/", headers={"Authorization": f"Bearer {jwt}"}
+        f"{account_url}/",
+        headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
     )
 
     assert result.status_code == status.HTTP_401_UNAUTHORIZED
@@ -419,10 +445,7 @@ async def test_update_password_204_success(
 
 @pytest.mark.asyncio
 async def test_update_password_422_invalid_password_format(
-    mock_user,
-    client: AsyncClient,
-    account_url,
-    mock_user_out_inserted,
+    mock_user, client: AsyncClient, account_url, mock_user_out_inserted, user_agent
 ):
     jwt = gen_jwt(360, mock_user)
 
@@ -431,7 +454,7 @@ async def test_update_password_422_invalid_password_format(
     result = await client.put(
         f"{account_url}/password",
         json={"password": "A12346789"},
-        headers={"Authorization": f"Bearer {jwt}"},
+        headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
     )
 
     assert result.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -444,10 +467,7 @@ async def test_update_password_422_invalid_password_format(
 
 @pytest.mark.asyncio
 async def test_update_password_401_user_not_found(
-    mock_user,
-    client: AsyncClient,
-    account_url,
-    mock_user_out_inserted,
+    mock_user, client: AsyncClient, account_url, mock_user_out_inserted, user_agent
 ):
     jwt = gen_jwt(360, mock_user)
 
@@ -459,7 +479,7 @@ async def test_update_password_401_user_not_found(
         result = await client.put(
             f"{account_url}/password",
             json={"password": "Abc4@6789"},
-            headers={"Authorization": f"Bearer {jwt}"},
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_401_UNAUTHORIZED
@@ -475,6 +495,7 @@ async def test_update_password_409_same_password(
     account_url,
     mock_user_out_inserted,
     password,
+    user_agent,
 ):
     jwt = gen_jwt(360, mock_user)
 
@@ -486,7 +507,7 @@ async def test_update_password_409_same_password(
         result = await client.put(
             f"{account_url}/password",
             json={"password": password},
-            headers={"Authorization": f"Bearer {jwt}"},
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_409_CONFLICT
@@ -499,10 +520,7 @@ async def test_update_password_409_same_password(
 
 @pytest.mark.asyncio
 async def test_update_password_500_database_error(
-    mock_user,
-    client: AsyncClient,
-    account_url,
-    mock_user_out_inserted,
+    mock_user, client: AsyncClient, account_url, mock_user_out_inserted, user_agent
 ):
     jwt = gen_jwt(360, mock_user)
 
@@ -521,7 +539,7 @@ async def test_update_password_500_database_error(
         result = await client.put(
             f"{account_url}/password",
             json={"password": "Abc4@6789"},
-            headers={"Authorization": f"Bearer {jwt}"},
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -533,10 +551,7 @@ async def test_update_password_500_database_error(
 
 @pytest.mark.asyncio
 async def test_update_password_500_unable_update_entity_error(
-    mock_user,
-    client: AsyncClient,
-    account_url,
-    mock_user_out_inserted,
+    mock_user, client: AsyncClient, account_url, mock_user_out_inserted, user_agent
 ):
     jwt = gen_jwt(360, mock_user)
 
@@ -555,7 +570,7 @@ async def test_update_password_500_unable_update_entity_error(
         result = await client.put(
             f"{account_url}/password",
             json={"password": "Abc4@6789"},
-            headers={"Authorization": f"Bearer {jwt}"},
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -567,10 +582,7 @@ async def test_update_password_500_unable_update_entity_error(
 
 @pytest.mark.asyncio
 async def test_update_password_500_generic_error(
-    mock_user,
-    client: AsyncClient,
-    account_url,
-    mock_user_out_inserted,
+    mock_user, client: AsyncClient, account_url, mock_user_out_inserted, user_agent
 ):
     jwt = gen_jwt(360, mock_user)
 
@@ -589,7 +601,7 @@ async def test_update_password_500_generic_error(
         result = await client.put(
             f"{account_url}/password",
             json={"password": "Abc4@6789"},
-            headers={"Authorization": f"Bearer {jwt}"},
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -625,7 +637,7 @@ async def test_delete_user_204_success(
 
 @pytest.mark.asyncio
 async def test_delete_user_500_unable_delete_entity(
-    mock_user, client: AsyncClient, account_url, mock_user_out_inserted
+    mock_user, client: AsyncClient, account_url, mock_user_out_inserted, user_agent
 ):
     jwt = gen_jwt(360, mock_user)
 
@@ -636,7 +648,7 @@ async def test_delete_user_500_unable_delete_entity(
     ) as user_mock:
         result = await client.delete(
             f"{account_url}/",
-            headers={"Authorization": f"Bearer {jwt}"},
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -649,7 +661,7 @@ async def test_delete_user_500_unable_delete_entity(
 
 @pytest.mark.asyncio
 async def test_delete_user_500_database_error(
-    mock_user, client: AsyncClient, account_url, mock_user_out_inserted
+    mock_user, client: AsyncClient, account_url, mock_user_out_inserted, user_agent
 ):
     jwt = gen_jwt(360, mock_user)
 
@@ -660,7 +672,7 @@ async def test_delete_user_500_database_error(
     ) as user_mock:
         result = await client.delete(
             f"{account_url}/",
-            headers={"Authorization": f"Bearer {jwt}"},
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -673,7 +685,7 @@ async def test_delete_user_500_database_error(
 
 @pytest.mark.asyncio
 async def test_delete_user_500_generic_error(
-    mock_user, client: AsyncClient, account_url, mock_user_out_inserted
+    mock_user, client: AsyncClient, account_url, mock_user_out_inserted, user_agent
 ):
     jwt = gen_jwt(360, mock_user)
 
@@ -684,7 +696,7 @@ async def test_delete_user_500_generic_error(
     ) as user_mock:
         result = await client.delete(
             f"{account_url}/",
-            headers={"Authorization": f"Bearer {jwt}"},
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
