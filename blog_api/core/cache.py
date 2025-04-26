@@ -23,7 +23,7 @@ async def get_cache_connection() -> AsyncGenerator[Redis, None]:
     try:
         yield client
     finally:
-        client.close()
+        await client.close()
 
 
 class Cache:
