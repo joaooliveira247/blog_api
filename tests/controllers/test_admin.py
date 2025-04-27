@@ -3,7 +3,7 @@ import pytest
 from httpx import AsyncClient
 
 from blog_api.commands.app import app
-from blog_api.contrib.errors import DatabaseError, GenericError
+from blog_api.contrib.errors import CacheError, DatabaseError, GenericError
 from blog_api.core.cache import Cache
 from blog_api.core.token import gen_jwt
 from blog_api.dependencies.auth import get_current_user
@@ -147,6 +147,39 @@ async def test_get_users_raise_500_generic_error(
         assert result.json() == {"detail": "Generic Error"}
 
         user_mock.assert_awaited_once()
+        mock_cache.assert_awaited_once()
+
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_get_users_raise_500_cache_error_when_get_from_cache(
+    mock_user,
+    client: AsyncClient,
+    admin_url,
+    mock_user_out_inserted,
+    user_agent,
+):
+    mock_user.role = "admin"
+    mock_user_out_inserted.role = "admin"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with (
+        patch.object(
+            Cache, "get", AsyncMock(side_effect=CacheError("Cache Error"))
+        ) as mock_cache,
+    ):
+        result = await client.get(
+            f"{admin_url}/users",
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+        )
+
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert result.json() == {"detail": "Cache Error"}
+
         mock_cache.assert_awaited_once()
 
     app.dependency_overrides.clear()
