@@ -4,6 +4,7 @@ from httpx import AsyncClient
 
 from blog_api.commands.app import app
 from blog_api.contrib.errors import DatabaseError, GenericError
+from blog_api.core.cache import Cache
 from blog_api.core.token import gen_jwt
 from blog_api.dependencies.auth import get_current_user
 from blog_api.repositories.users import UsersRepository
@@ -26,9 +27,16 @@ async def test_get_users_return_success(
 
     app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
 
-    with patch.object(
-        UsersRepository, "get_users", AsyncMock(return_value=mock_users_out_inserted)
-    ) as user_mock:
+    with (
+        patch.object(
+            UsersRepository,
+            "get_users",
+            AsyncMock(return_value=mock_users_out_inserted),
+        ) as user_mock,
+        patch.multiple(
+            Cache, get=AsyncMock(return_value=None), add=AsyncMock(return_value=None)
+        ),
+    ):
         result = await client.get(
             f"{admin_url}/users",
             headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
