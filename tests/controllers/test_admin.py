@@ -87,7 +87,6 @@ async def test_get_users_raise_500_database_error(
     mock_user,
     client: AsyncClient,
     admin_url,
-    mock_users_out_inserted,
     mock_user_out_inserted,
     user_agent,
 ):
@@ -98,9 +97,12 @@ async def test_get_users_raise_500_database_error(
 
     app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
 
-    with patch.object(
-        UsersRepository, "get_users", AsyncMock(side_effect=DatabaseError)
-    ) as user_mock:
+    with (
+        patch.object(
+            UsersRepository, "get_users", AsyncMock(side_effect=DatabaseError)
+        ) as user_mock,
+        patch.object(Cache, "get", AsyncMock(return_value=None)) as mock_cache,
+    ):
         result = await client.get(
             f"{admin_url}/users",
             headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
@@ -110,6 +112,7 @@ async def test_get_users_raise_500_database_error(
         assert result.json() == {"detail": "Database integrity error"}
 
         user_mock.assert_awaited_once()
+        mock_cache.assert_awaited_once()
 
     app.dependency_overrides.clear()
 
@@ -119,7 +122,6 @@ async def test_get_users_raise_500_generic_error(
     mock_user,
     client: AsyncClient,
     admin_url,
-    mock_users_out_inserted,
     mock_user_out_inserted,
     user_agent,
 ):
@@ -130,9 +132,12 @@ async def test_get_users_raise_500_generic_error(
 
     app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
 
-    with patch.object(
-        UsersRepository, "get_users", AsyncMock(side_effect=GenericError)
-    ) as user_mock:
+    with (
+        patch.object(
+            UsersRepository, "get_users", AsyncMock(side_effect=GenericError)
+        ) as user_mock,
+        patch.object(Cache, "get", AsyncMock(return_value=None)) as mock_cache,
+    ):
         result = await client.get(
             f"{admin_url}/users",
             headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
@@ -142,5 +147,6 @@ async def test_get_users_raise_500_generic_error(
         assert result.json() == {"detail": "Generic Error"}
 
         user_mock.assert_awaited_once()
+        mock_cache.assert_awaited_once()
 
     app.dependency_overrides.clear()
