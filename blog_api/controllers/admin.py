@@ -14,6 +14,7 @@ from blog_api.contrib.errors import (
     DatabaseError,
     EncodingError,
     GenericError,
+    UnableDeleteEntity,
 )
 
 
@@ -107,6 +108,31 @@ async def get_user_by_id(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
         )
     except DatabaseError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+    except GenericError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+
+
+@admin_controller.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(
+    db: DatabaseDependency,  # type:ignore
+    user_id: UUID,
+    user: UserOut = Depends(get_current_user),
+) -> None:
+    if user.role not in ("admin", "dev"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid permissions"
+        )
+
+    repository = UsersRepository(db)
+
+    try:
+        await repository.delete_user(user_id)
+    except (DatabaseError, UnableDeleteEntity) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
         )
