@@ -509,3 +509,29 @@ async def test_get_user_by_id_success_from_cache(
         user_mock.assert_awaited_once()
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_id_raise_401_invalid_permissions(
+    mock_user,
+    client: AsyncClient,
+    admin_url,
+    mock_user_out_inserted,
+    user_agent,
+):
+    mock_user.role = "user"
+    mock_user_out_inserted.role = "user"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    result = await client.get(
+        f"{admin_url}/users/{mock_user_out_inserted.id}",
+        headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+    )
+
+    assert result.status_code == status.HTTP_401_UNAUTHORIZED
+    assert result.json() == {"detail": "invalid permissions"}
+
+    app.dependency_overrides.clear()
