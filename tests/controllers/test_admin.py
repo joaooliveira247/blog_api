@@ -571,3 +571,36 @@ async def test_get_user_by_id_raise_500_cache_error(
         user_mock.assert_awaited_once()
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_id_raise_500_encoding_error(
+    mock_user,
+    client: AsyncClient,
+    admin_url,
+    mock_user_out_inserted,
+    user_agent,
+):
+    mock_user.role = "admin"
+    mock_user_out_inserted.role = "admin"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.object(
+        Cache,
+        "get",
+        new=AsyncMock(side_effect=EncodingError),
+    ) as user_mock:
+        result = await client.get(
+            f"{admin_url}/users/{mock_user_out_inserted.id}",
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+        )
+
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert result.json() == {"detail": "Error when try encoding one object"}
+
+        user_mock.assert_awaited_once()
+
+    app.dependency_overrides.clear()
