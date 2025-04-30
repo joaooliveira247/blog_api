@@ -125,6 +125,36 @@ async def test_get_user_by_email_from_cache_return_success(
 
 
 @pytest.mark.asyncio
+async def test_get_user_by_email_raise_invalid_email(
+    mock_user,
+    client: AsyncClient,
+    admin_url,
+    mock_user_out_inserted,
+    user_agent,
+):
+    mock_user.role = "admin"
+    mock_user_out_inserted.role = "admin"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    result = await client.get(
+        f"{admin_url}/users?email=1234@123",
+        headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+    )
+
+    print(result.json(), result.status_code)
+    assert result.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert (
+        result.json()["detail"][0]["msg"]
+        == "value is not a valid email address: The part after the @-sign is not valid. It should have a period."
+    )
+
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
 async def test_get_users_return_success_from_cache(
     mock_user,
     client: AsyncClient,
