@@ -538,3 +538,36 @@ async def test_get_user_by_id_raise_422_invalid_uuid(
     )
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_id_raise_500_cache_error(
+    mock_user,
+    client: AsyncClient,
+    admin_url,
+    mock_user_out_inserted,
+    user_agent,
+):
+    mock_user.role = "admin"
+    mock_user_out_inserted.role = "admin"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.object(
+        Cache,
+        "get",
+        new=AsyncMock(side_effect=CacheError("Cache Error")),
+    ) as user_mock:
+        result = await client.get(
+            f"{admin_url}/users/{mock_user_out_inserted.id}",
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+        )
+
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert result.json() == {"detail": "Cache Error"}
+
+        user_mock.assert_awaited_once()
+
+    app.dependency_overrides.clear()
