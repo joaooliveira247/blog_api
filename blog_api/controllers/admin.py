@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, Query, status
 from fastapi_pagination import Page, paginate
+from pydantic import EmailStr
 
 from blog_api.core.cache import Cache
+from blog_api.models.users import UserModel
 from blog_api.repositories.users import UsersRepository
 from blog_api.dependencies.dependencies import CacheDependency, DatabaseDependency
 from blog_api.dependencies.auth import get_current_user
@@ -22,6 +24,7 @@ async def get_users(
     db: DatabaseDependency,  # type: ignore
     cache_conn: CacheDependency,  # type: ignore
     user: UserOut = Depends(get_current_user),
+    email: EmailStr = Query(None),
 ) -> Page[UserOut]:
     if user.role not in ("admin", "dev"):
         raise HTTPException(
@@ -33,6 +36,15 @@ async def get_users(
     cache = Cache(cache_conn)
 
     try:
+        if email:
+            print(email)
+            if cache_user := await cache.get(f"user:{email}", UserOut):
+                return paginate([cache_user])
+
+            db_user = await repository.get_user_by_query(UserModel(email=email))
+
+            return paginate([UserOut(**db_user.__dict__)])
+
         users = await cache.get("user:all", UserOut)
 
         if users is not None:
