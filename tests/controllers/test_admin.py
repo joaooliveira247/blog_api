@@ -512,26 +512,29 @@ async def test_get_user_by_id_success_from_cache(
 
 
 @pytest.mark.asyncio
-async def test_get_user_by_id_raise_401_invalid_permissions(
+async def test_get_user_by_id_raise_422_invalid_uuid(
     mock_user,
     client: AsyncClient,
     admin_url,
     mock_user_out_inserted,
     user_agent,
 ):
-    mock_user.role = "user"
-    mock_user_out_inserted.role = "user"
+    mock_user.role = "admin"
+    mock_user_out_inserted.role = "admin"
 
     jwt = gen_jwt(360, mock_user)
 
     app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
 
     result = await client.get(
-        f"{admin_url}/users/{mock_user_out_inserted.id}",
+        f"{admin_url}/users/123",
         headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
     )
 
-    assert result.status_code == status.HTTP_401_UNAUTHORIZED
-    assert result.json() == {"detail": "invalid permissions"}
+    assert result.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert (
+        result.json()["detail"][0]["msg"]
+        == "Input should be a valid UUID, invalid length: expected length 32 for simple format, found 3"
+    )
 
     app.dependency_overrides.clear()
