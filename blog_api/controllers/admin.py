@@ -37,7 +37,6 @@ async def get_users(
 
     try:
         if email:
-            print(email)
             if cache_user := await cache.get(f"user:{email}", UserOut):
                 return paginate([cache_user])
 
