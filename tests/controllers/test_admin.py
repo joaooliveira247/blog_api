@@ -764,3 +764,28 @@ async def test_get_user_by_id_raise_500_generic_error_when_add_cache(
         user_mock.assert_awaited_once()
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_delete_user_return_success(
+    client: AsyncClient, mock_user, admin_url, user_agent, mock_user_out_inserted
+):
+    mock_user.role = "admin"
+    mock_user_out_inserted.role = "admin"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.object(
+        UsersRepository, "delete_user", AsyncMock(return_value=None)
+    ) as mock_user:
+        result = await client.delete(
+            f"{admin_url}/users/{mock_user_out_inserted.id}",
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+        )
+
+        assert result.status_code == status.HTTP_204_NO_CONTENT
+        assert result.text == ""
+
+        mock_user.assert_awaited_once()
