@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import APIRouter, HTTPException, Depends, Query, status
 from fastapi_pagination import Page, paginate
 from pydantic import EmailStr
@@ -56,6 +57,50 @@ async def get_users(
         await cache.add("user:all", users)
 
         return paginate(users)
+
+    except (CacheError, EncodingError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+    except DatabaseError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+    except GenericError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+
+
+@admin_controller.get("/users/{user_id}")
+async def get_user_by_id(
+    db: DatabaseDependency,  # type: ignore
+    cache_conn: CacheDependency,  # type: ignore
+    user_id: UUID,
+    user: UserOut = Depends(get_current_user),
+) -> UserOut:
+    if user.role not in ("admin", "dev"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid permissions"
+        )
+
+    repository = UsersRepository(db)
+
+    cache = Cache(cache_conn)
+
+    try:
+        cache_user = await cache.get(f"user:{user_id}", UserOut)
+
+        if cache_user is not None and isinstance(cache_user, UserOut):
+            return cache_user
+
+        db_user = await repository.get_user_by_id(user_id)
+
+        db_user = UserOut(**db_user.__dict__)
+
+        await cache.add(f"user:{db_user.id}", db_user)
+
+        return db_user
 
     except (CacheError, EncodingError) as e:
         raise HTTPException(
