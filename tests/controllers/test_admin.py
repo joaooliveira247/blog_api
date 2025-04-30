@@ -94,6 +94,37 @@ async def test_get_user_by_email_return_success(
 
 
 @pytest.mark.asyncio
+async def test_get_user_by_email_from_cache_return_success(
+    mock_user,
+    client: AsyncClient,
+    admin_url,
+    mock_user_out_inserted,
+    user_agent,
+):
+    mock_user.role = "admin"
+    mock_user_out_inserted.role = "admin"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.multiple(
+        Cache,
+        get=AsyncMock(return_value=mock_user_out_inserted),
+        add=AsyncMock(return_value=None),
+    ):
+        result = await client.get(
+            f"{admin_url}/users?email={mock_user_out_inserted.email}",
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+        )
+
+        assert result.status_code == status.HTTP_200_OK
+        assert len(result.json()["items"]) == 1
+
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
 async def test_get_users_return_success_from_cache(
     mock_user,
     client: AsyncClient,
