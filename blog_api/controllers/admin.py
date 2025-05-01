@@ -8,13 +8,16 @@ from blog_api.models.users import UserModel
 from blog_api.repositories.users import UsersRepository
 from blog_api.dependencies.dependencies import CacheDependency, DatabaseDependency
 from blog_api.dependencies.auth import get_current_user
-from blog_api.schemas.users import UserOut
+from blog_api.schemas.response import UpdateSuccess
+from blog_api.schemas.users import RoleUpdate, UserOut
 from blog_api.contrib.errors import (
     CacheError,
     DatabaseError,
     EncodingError,
     GenericError,
+    NoResultFound,
     UnableDeleteEntity,
+    UnableUpdateEntity,
 )
 
 
@@ -108,6 +111,43 @@ async def get_user_by_id(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
         )
     except DatabaseError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+    except GenericError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+
+
+@admin_controller.patch("/users/{user_id}/role", status_code=status.HTTP_200_OK)
+async def update_user_role(
+    db: DatabaseDependency,  # type:ignore
+    user_id: UUID,
+    data: RoleUpdate,
+    user: UserOut = Depends(get_current_user),
+) -> UpdateSuccess:
+    if user.role not in ("admin", "dev"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid permissions"
+        )
+
+    if user_id == user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="you are not allowed to change your own role",
+        )
+
+    repository = UsersRepository(db)
+
+    try:
+        await repository.update_user_role(user_id, data.role)
+
+        return UpdateSuccess(message="User role updated successfully")
+
+    except NoResultFound as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+    except (DatabaseError, UnableUpdateEntity) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
         )
