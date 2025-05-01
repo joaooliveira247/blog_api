@@ -1220,3 +1220,30 @@ async def test_get_open_api_endpoint_as_admin_success(
     assert "paths" in result.json()
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_get_open_api_endpoint_as_dev_success(
+    client: AsyncClient,
+    mock_user,
+    admin_url,
+    user_agent,
+    mock_user_out_inserted,
+):
+    mock_user.role = "dev"
+    mock_user_out_inserted.role = "dev"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    result = await client.get(
+        f"{admin_url}/openapi.json",
+        headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+    )
+
+    assert result.status_code == status.HTTP_200_OK
+    assert result.json()["openapi"] == "3.1.0"
+    assert "paths" in result.json()
+
+    app.dependency_overrides.clear()
