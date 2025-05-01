@@ -789,3 +789,23 @@ async def test_delete_user_return_success(
         assert result.text == ""
 
         mock_user.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_delete_user_raise_401_invalid_permission(
+    client: AsyncClient, mock_user, admin_url, user_agent, mock_user_out_inserted
+):
+    mock_user.role = "user"
+    mock_user_out_inserted.role = "user"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    result = await client.delete(
+        f"{admin_url}/users/{mock_user_out_inserted.id}",
+        headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+    )
+
+    assert result.status_code == status.HTTP_401_UNAUTHORIZED
+    assert result.json() == {"detail": "invalid permissions"}
