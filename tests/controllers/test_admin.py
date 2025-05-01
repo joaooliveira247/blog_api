@@ -1118,7 +1118,7 @@ async def test_update_user_role_raise_500_generic_error(
 
 
 @pytest.mark.asyncio
-async def test_get_docs_as_admin_html_success(
+async def test_get_docs_html_as_admin_success(
     client: AsyncClient,
     mock_user,
     admin_url,
