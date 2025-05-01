@@ -8,6 +8,7 @@ from blog_api.contrib.errors import (
     DatabaseError,
     EncodingError,
     GenericError,
+    NoResultFound,
     UnableDeleteEntity,
 )
 from blog_api.core.cache import Cache
@@ -985,5 +986,37 @@ async def test_update_user_role_raise_403_change_own_role(
 
     assert result.status_code == status.HTTP_403_FORBIDDEN
     assert result.json() == {"detail": "you are not allowed to change your own role"}
+
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_update_user_role_raise_404_no_result_found(
+    client: AsyncClient,
+    mock_user,
+    admin_url,
+    user_agent,
+    mock_user_out_inserted,
+):
+    mock_user.role = "admin"
+    mock_user_out_inserted.role = "admin"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.object(
+        UsersRepository, "update_user_role", AsyncMock(side_effect=NoResultFound)
+    ) as mock_user:
+        result = await client.patch(
+            f"{admin_url}/users/cb972123-113c-435d-9236-93d842489682/role",
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            json={"role": "dev"},
+        )
+
+        assert result.status_code == status.HTTP_404_NOT_FOUND
+        assert result.json() == {"detail": "Result not found"}
+
+        mock_user.assert_awaited_once()
 
     app.dependency_overrides.clear()
