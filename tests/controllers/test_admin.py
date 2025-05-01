@@ -960,3 +960,30 @@ async def test_update_user_role_raise_401_invalid_permissions(
     assert result.json() == {"detail": "invalid permissions"}
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_update_user_role_raise_403_change_own_role(
+    client: AsyncClient,
+    mock_user,
+    admin_url,
+    user_agent,
+    mock_user_out_inserted,
+):
+    mock_user.role = "dev"
+    mock_user_out_inserted.role = "dev"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    result = await client.patch(
+        f"{admin_url}/users/{mock_user_out_inserted.id}/role",
+        headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+        json={"role": "dev"},
+    )
+
+    assert result.status_code == status.HTTP_403_FORBIDDEN
+    assert result.json() == {"detail": "you are not allowed to change your own role"}
+
+    app.dependency_overrides.clear()
