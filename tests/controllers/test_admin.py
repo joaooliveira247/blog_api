@@ -1247,3 +1247,29 @@ async def test_get_open_api_endpoint_as_dev_success(
     assert "paths" in result.json()
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_get_open_api_endpoint_as_user_raise_401_invalid_permissions(
+    client: AsyncClient,
+    mock_user,
+    admin_url,
+    user_agent,
+    mock_user_out_inserted,
+):
+    mock_user.role = "user"
+    mock_user_out_inserted.role = "user"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    result = await client.get(
+        f"{admin_url}/openapi.json",
+        headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+    )
+
+    assert result.status_code == status.HTTP_401_UNAUTHORIZED
+    assert result.json() == {"detail": "invalid permissions"}
+
+    app.dependency_overrides.clear()
