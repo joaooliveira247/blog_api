@@ -8,6 +8,7 @@ from blog_api.contrib.errors import (
     DatabaseError,
     EncodingError,
     GenericError,
+    UnableDeleteEntity,
 )
 from blog_api.core.cache import Cache
 from blog_api.core.token import gen_jwt
@@ -832,5 +833,30 @@ async def test_delete_user_raise_500_database_error(
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert result.json() == {"detail": "Database integrity error"}
+
+        mock_user.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_delete_user_raise_500_unable_delete_entity_error(
+    client: AsyncClient, mock_user, admin_url, user_agent, mock_user_out_inserted
+):
+    mock_user.role = "admin"
+    mock_user_out_inserted.role = "admin"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.object(
+        UsersRepository, "delete_user", AsyncMock(side_effect=UnableDeleteEntity)
+    ) as mock_user:
+        result = await client.delete(
+            f"{admin_url}/users/{mock_user_out_inserted.id}",
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+        )
+
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert result.json() == {"detail": "Unable Delete Entity"}
 
         mock_user.assert_awaited_once()
