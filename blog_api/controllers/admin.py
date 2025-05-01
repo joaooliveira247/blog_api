@@ -1,5 +1,7 @@
 from uuid import UUID
 from fastapi import APIRouter, HTTPException, Depends, Query, status
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.responses import HTMLResponse
 from fastapi_pagination import Page, paginate
 from pydantic import EmailStr
 
@@ -180,3 +182,13 @@ async def delete_user(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
         )
+
+
+@admin_controller.get("/docs", status_code=status.HTTP_200_OK, include_in_schema=False)
+async def get_swagger_ui(user: UserOut = Depends(get_current_user)) -> HTMLResponse:
+    if user.role not in ("admin", "dev"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid permissions"
+        )
+
+    return get_swagger_ui_html(openapi_url="/admin/openapi.json", title="Admin Docs")
