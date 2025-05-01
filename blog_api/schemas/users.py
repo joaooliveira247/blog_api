@@ -1,3 +1,4 @@
+from typing import Literal
 from pydantic import BaseModel, Field, EmailStr, field_validator
 import re
 
@@ -46,3 +47,7 @@ class UserOut(BaseUser, OutMixin):
 
 
 class PasswordUpdate(PasswordMixin): ...
+
+
+class RoleUpdate(BaseModel):
+    role: Literal["user", "admin", "dev"]
