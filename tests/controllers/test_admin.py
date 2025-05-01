@@ -813,6 +813,8 @@ async def test_delete_user_raise_401_invalid_permission(
     assert result.status_code == status.HTTP_401_UNAUTHORIZED
     assert result.json() == {"detail": "invalid permissions"}
 
+    app.dependency_overrides.clear()
+
 
 @pytest.mark.asyncio
 async def test_delete_user_raise_500_database_error(
@@ -837,6 +839,8 @@ async def test_delete_user_raise_500_database_error(
         assert result.json() == {"detail": "Database integrity error"}
 
         mock_user.assert_awaited_once()
+
+    app.dependency_overrides.clear()
 
 
 @pytest.mark.asyncio
@@ -863,6 +867,8 @@ async def test_delete_user_raise_500_unable_delete_entity_error(
 
         mock_user.assert_awaited_once()
 
+    app.dependency_overrides.clear()
+
 
 @pytest.mark.asyncio
 async def test_delete_user_raise_500_generic_error(
@@ -887,3 +893,5 @@ async def test_delete_user_raise_500_generic_error(
         assert result.json() == {"detail": "Generic Error"}
 
         mock_user.assert_awaited_once()
+
+    app.dependency_overrides.clear()
