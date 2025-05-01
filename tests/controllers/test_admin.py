@@ -10,6 +10,7 @@ from blog_api.contrib.errors import (
     GenericError,
     NoResultFound,
     UnableDeleteEntity,
+    UnableUpdateEntity,
 )
 from blog_api.core.cache import Cache
 from blog_api.core.token import gen_jwt
@@ -1048,6 +1049,38 @@ async def test_update_user_role_raise_500_database_error(
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert result.json() == {"detail": "Database integrity error"}
+
+        mock_user.assert_awaited_once()
+
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_update_user_role_raise_500_unable_update_entity(
+    client: AsyncClient,
+    mock_user,
+    admin_url,
+    user_agent,
+    mock_user_out_inserted,
+):
+    mock_user.role = "admin"
+    mock_user_out_inserted.role = "admin"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.object(
+        UsersRepository, "update_user_role", AsyncMock(side_effect=UnableUpdateEntity)
+    ) as mock_user:
+        result = await client.patch(
+            f"{admin_url}/users/cb972123-113c-435d-9236-93d842489682/role",
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            json={"role": "dev"},
+        )
+
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert result.json() == {"detail": "Unable Update Entity"}
 
         mock_user.assert_awaited_once()
 
