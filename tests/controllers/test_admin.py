@@ -791,6 +791,8 @@ async def test_delete_user_return_success(
 
         mock_user.assert_awaited_once()
 
+    app.dependency_overrides.clear()
+
 
 @pytest.mark.asyncio
 async def test_delete_user_raise_401_invalid_permission(
