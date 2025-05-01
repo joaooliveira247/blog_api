@@ -895,3 +895,38 @@ async def test_delete_user_raise_500_generic_error(
         mock_user.assert_awaited_once()
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_update_user_role_success(
+    client: AsyncClient,
+    mock_user,
+    admin_url,
+    user_agent,
+    mock_user_out_inserted,
+    mock_users_out_inserted,
+):
+    mock_user.role = "admin"
+    mock_user_out_inserted.role = "admin"
+
+    user_update = mock_users_out_inserted[0]
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.object(
+        UsersRepository, "update_user_role", AsyncMock(return_value=None)
+    ) as mock_user:
+        result = await client.patch(
+            f"{admin_url}/users/{user_update.id}/role",
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            json={"role": "dev"},
+        )
+
+        assert result.status_code == status.HTTP_200_OK
+        assert result.json() == {"message": "User role updated successfully"}
+
+        mock_user.assert_called_once_with(user_update.id, "dev")
+
+    app.dependency_overrides.clear()
