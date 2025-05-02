@@ -10,3 +10,6 @@ class PostBase(BaseModel):
 
 class PostOut(PostBase, OutMixin):
     author: str = Field(..., description="Post author username")
+
+
+class PostIn(PostBase): ...
