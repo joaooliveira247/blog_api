@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import OperationalError, IntegrityError
 from blog_api.repositories.posts import PostsRepository
 from blog_api.models.posts import PostModel
-from blog_api.models.posts import UserModel
 from blog_api.contrib.errors import (
     DatabaseError,
     GenericError,
@@ -23,14 +22,12 @@ async def test_create_post_success(
     mock_session: AsyncSession,
     mock_post: PostModel,
     post_id: UUID,
-    mock_user_inserted: UserModel,
 ):
-    users_repository = AsyncMock()
-    users_repository.get_user_by_id.return_value = mock_user_inserted
-
     mock_session.commit.side_effect = lambda: setattr(mock_post, "id", post_id)
 
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(
+        mock_session,
+    )
 
     await posts_repository.create_post(mock_post)
 
@@ -110,9 +107,7 @@ async def test_create_post_raise_generic_error(
 async def test_get_posts_return_success(
     mock_session: AsyncMock, mock_posts_inserted: list[PostOut]
 ):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(PostsRepository, "get_posts", new_callable=AsyncMock) as mock:
         mock.return_value = mock_posts_inserted
@@ -128,9 +123,7 @@ async def test_get_posts_return_success(
 async def test_get_posts_return_success_but_empty(
     mock_session: AsyncMock,
 ):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(PostsRepository, "get_posts", new_callable=AsyncMock) as mock:
         mock.return_value = []
@@ -180,9 +173,7 @@ async def test_get_posts_raise_generic_error(
 async def test_get_post_by_id_return_success(
     mock_session: AsyncMock, mock_post_inserted: PostOut, post_id: UUID
 ):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(
         PostsRepository, "get_post_by_id", new_callable=AsyncMock
@@ -197,9 +188,7 @@ async def test_get_post_by_id_return_success(
 
 @pytest.mark.asyncio
 async def test_get_post_by_id_return_none(mock_session: AsyncMock, post_id: UUID):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(
         PostsRepository, "get_post_by_id", new_callable=AsyncMock
@@ -254,9 +243,7 @@ async def test_get_post_by_id_raise_generic_error(
 async def test_get_post_by_user_id_success(
     mock_session: AsyncMock, user_id: UUID, mock_posts_inserted: list[PostOut]
 ):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     mock_return_value = mock_posts_inserted[1:2]
 
@@ -277,9 +264,7 @@ async def test_get_post_by_user_id_success(
 
 @pytest.mark.asyncio
 async def test_get_post_by_user_id_return_empty(mock_session: AsyncMock, user_id: UUID):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(
         PostsRepository, "get_posts_by_user_id", new_callable=AsyncMock
@@ -335,9 +320,7 @@ async def test_get_post_by_user_id_raise_generic_error(
 async def test_update_post_success(
     mock_session: AsyncMock, post_id: UUID, mock_update_post: dict
 ):
-    users_repository = AsyncMock()
-
-    posts_reposiotry = PostsRepository(mock_session, users_repository)
+    posts_reposiotry = PostsRepository(mock_session)
 
     with patch.object(PostsRepository, "update_post", new_callable=AsyncMock) as mock:
         mock.return_value = None
@@ -417,9 +400,9 @@ async def test_update_post_raise_generic_error(
 
 @pytest.mark.asyncio
 async def test_delete_post_return_success(mock_session: AsyncMock, post_id: UUID):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(
+        mock_session,
+    )
 
     with patch.object(PostsRepository, "delete_post", new_callable=AsyncMock) as mock:
         mock.return_value = None
