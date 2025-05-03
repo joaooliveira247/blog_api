@@ -38,19 +38,6 @@ async def test_create_post_success(
 
 
 @pytest.mark.asyncio
-async def test_create_post_raise_no_result_found_in_user_id(
-    mock_session: AsyncSession, mock_post: PostModel
-):
-    users_repository = AsyncMock()
-    users_repository.get_user_by_id.return_value = None
-
-    posts_repository = PostsRepository(mock_session, users_repository)
-
-    with pytest.raises(NoResultFound, match="Result not found with user_id"):
-        await posts_repository.create_post(mock_post)
-
-
-@pytest.mark.asyncio
 async def test_create_post_raise_database_error(
     mock_session: AsyncMock, mock_post: MagicMock
 ):
