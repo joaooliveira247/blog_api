@@ -54,10 +54,7 @@ async def test_create_post_raise_no_result_found_in_user_id(
 async def test_create_post_raise_database_error(
     mock_session: AsyncMock, mock_post: MagicMock
 ):
-    users_repository = AsyncMock()
-    users_repository.get_user_by_id.return_value = MagicMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     mock_session.flush.side_effect = OperationalError("stmt", "params", "orig")
 
@@ -71,10 +68,7 @@ async def test_create_post_raise_database_error(
 async def test_create_post_raise_unable_create_entity_error(
     mock_session: AsyncMock, mock_post: MagicMock
 ):
-    users_repository = AsyncMock()
-    users_repository.get_user_by_id.return_value = MagicMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     mock_session.flush.side_effect = IntegrityError("stmt", "params", "orig")
 
@@ -90,10 +84,7 @@ async def test_create_post_raise_unable_create_entity_error(
 async def test_create_post_raise_generic_error(
     mock_session: AsyncMock, mock_post: MagicMock
 ):
-    users_repository = AsyncMock()
-    users_repository.get_user_by_id.return_value = MagicMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     mock_session.flush.side_effect = Exception()
 
@@ -139,9 +130,7 @@ async def test_get_posts_return_success_but_empty(
 async def test_get_posts_raise_database_error(
     mock_session: AsyncMock,
 ):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(PostsRepository, "get_posts", new_callable=AsyncMock) as mock:
         mock.side_effect = DatabaseError
@@ -156,9 +145,7 @@ async def test_get_posts_raise_database_error(
 async def test_get_posts_raise_generic_error(
     mock_session: AsyncMock,
 ):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(PostsRepository, "get_posts", new_callable=AsyncMock) as mock:
         mock.side_effect = GenericError
@@ -205,9 +192,7 @@ async def test_get_post_by_id_return_none(mock_session: AsyncMock, post_id: UUID
 async def test_get_post_by_id_raise_database_error(
     mock_session: AsyncMock, post_id: UUID
 ):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(
         PostsRepository, "get_post_by_id", new_callable=AsyncMock
@@ -224,9 +209,7 @@ async def test_get_post_by_id_raise_database_error(
 async def test_get_post_by_id_raise_generic_error(
     mock_session: AsyncMock, post_id: UUID
 ):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(
         PostsRepository, "get_post_by_id", new_callable=AsyncMock
@@ -282,9 +265,7 @@ async def test_get_post_by_user_id_return_empty(mock_session: AsyncMock, user_id
 async def test_get_post_by_user_id_raise_database_error(
     mock_session: AsyncMock, user_id: UUID
 ):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(
         PostsRepository, "get_posts_by_user_id", new_callable=AsyncMock
@@ -301,9 +282,7 @@ async def test_get_post_by_user_id_raise_database_error(
 async def test_get_post_by_user_id_raise_generic_error(
     mock_session: AsyncMock, user_id: UUID
 ):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(
         PostsRepository, "get_posts_by_user_id", new_callable=AsyncMock
@@ -334,9 +313,7 @@ async def test_update_post_success(
 async def test_update_post_raise_no_result_found(
     mock_session: AsyncMock, post_id: UUID, mock_update_post: dict
 ):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(PostsRepository, "update_post", new_callable=AsyncMock) as mock:
         mock.side_effect = NoResultFound("post_id")
@@ -351,9 +328,7 @@ async def test_update_post_raise_no_result_found(
 async def test_update_post_raise_database_error(
     mock_session: AsyncMock, post_id: UUID, mock_update_post: dict
 ):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(PostsRepository, "update_post", new_callable=AsyncMock) as mock:
         mock.side_effect = DatabaseError
@@ -368,9 +343,7 @@ async def test_update_post_raise_database_error(
 async def test_update_post_raise_unable_update_entity(
     mock_session: AsyncMock, post_id: UUID, mock_update_post: dict
 ):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(PostsRepository, "update_post", new_callable=AsyncMock) as mock:
         mock.side_effect = UnableUpdateEntity
@@ -385,9 +358,7 @@ async def test_update_post_raise_unable_update_entity(
 async def test_update_post_raise_generic_error(
     mock_session: AsyncMock, post_id: UUID, mock_update_post: dict
 ):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(PostsRepository, "update_post", new_callable=AsyncMock) as mock:
         mock.side_effect = GenericError
@@ -416,9 +387,7 @@ async def test_delete_post_return_success(mock_session: AsyncMock, post_id: UUID
 async def test_delete_post_raise_unable_delete_entity(
     mock_session: AsyncMock, post_id: UUID
 ):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(PostsRepository, "delete_post", new_callable=AsyncMock) as mock:
         mock.side_effect = UnableDeleteEntity
@@ -431,9 +400,7 @@ async def test_delete_post_raise_unable_delete_entity(
 
 @pytest.mark.asyncio
 async def test_delete_post_raise_database_error(mock_session: AsyncMock, post_id: UUID):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(PostsRepository, "delete_post", new_callable=AsyncMock) as mock:
         mock.side_effect = DatabaseError
@@ -448,9 +415,7 @@ async def test_delete_post_raise_database_error(mock_session: AsyncMock, post_id
 async def test_delete_post_raise_no_result_found(
     mock_session: AsyncMock, post_id: UUID
 ):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(PostsRepository, "delete_post", new_callable=AsyncMock) as mock:
         mock.side_effect = NoResultFound("user_id")
@@ -463,9 +428,7 @@ async def test_delete_post_raise_no_result_found(
 
 @pytest.mark.asyncio
 async def test_delete_post_raise_generic_error(mock_session: AsyncMock, post_id: UUID):
-    users_repository = AsyncMock()
-
-    posts_repository = PostsRepository(mock_session, users_repository)
+    posts_repository = PostsRepository(mock_session)
 
     with patch.object(PostsRepository, "delete_post", new_callable=AsyncMock) as mock:
         mock.side_effect = GenericError
