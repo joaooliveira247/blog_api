@@ -4,6 +4,7 @@ from httpx import AsyncClient
 import pytest
 
 from blog_api.commands.app import app
+from blog_api.contrib.errors import DatabaseError
 from blog_api.core.token import gen_jwt
 from blog_api.dependencies.auth import get_current_user
 from blog_api.models.users import UserModel
@@ -76,5 +77,42 @@ async def test_create_post_raise_422_invalid_request(
 
     assert result.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
     assert result.json()["detail"][0]["msg"] == "Field required"
+
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_create_post_raise_500_database_error(
+    client: AsyncClient,
+    posts_url: str,
+    user_agent: str,
+    mock_post_inserted: PostOut,
+    mock_user: UserModel,
+    mock_user_out_inserted: UserOut,
+):
+    mock_user.role = "user"
+    mock_user_out_inserted.role = "user"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.object(
+        PostsRepository, "create_post", AsyncMock(side_effect=DatabaseError)
+    ) as mock_post:
+        result = await client.post(
+            f"{posts_url}/",
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            json={
+                "title": mock_post_inserted.title,
+                "categories": mock_post_inserted.categories,
+                "content": mock_post_inserted.content,
+            },
+        )
+
+        mock_post.assert_awaited_once()
+
+    assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert result.json() == {"detail": "Database integrity error"}
 
     app.dependency_overrides.clear()
