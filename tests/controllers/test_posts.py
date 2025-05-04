@@ -77,5 +77,4 @@ async def test_create_post_raise_422_invalid_request(
     assert result.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
     assert result.json()["detail"][0]["msg"] == "Field required"
 
-
-app.dependency_overrides.clear()
+    app.dependency_overrides.clear()
