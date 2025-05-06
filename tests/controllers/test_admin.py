@@ -965,6 +965,36 @@ async def test_update_user_role_raise_401_invalid_permissions(
 
 
 @pytest.mark.asyncio
+async def test_update_user_role_raise_401_invalid_permissions_dev_cant_change_role(
+    client: AsyncClient,
+    mock_user,
+    admin_url,
+    user_agent,
+    mock_user_out_inserted,
+    mock_users_out_inserted,
+):
+    mock_user.role = "dev"
+    mock_user_out_inserted.role = "dev"
+
+    user_update = mock_users_out_inserted[0]
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    result = await client.patch(
+        f"{admin_url}/users/{user_update.id}/role",
+        headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+        json={"role": "dev"},
+    )
+
+    assert result.status_code == status.HTTP_401_UNAUTHORIZED
+    assert result.json() == {"detail": "invalid permissions"}
+
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
 async def test_update_user_role_raise_403_change_own_role(
     client: AsyncClient,
     mock_user,
