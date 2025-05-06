@@ -972,8 +972,8 @@ async def test_update_user_role_raise_403_change_own_role(
     user_agent,
     mock_user_out_inserted,
 ):
-    mock_user.role = "dev"
-    mock_user_out_inserted.role = "dev"
+    mock_user.role = "admin"
+    mock_user_out_inserted.role = "admin"
 
     jwt = gen_jwt(360, mock_user)
 
