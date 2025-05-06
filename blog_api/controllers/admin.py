@@ -130,7 +130,7 @@ async def update_user_role(
     data: RoleUpdate,
     user: UserOut = Depends(get_current_user),
 ) -> UpdateSuccess:
-    if user.role not in ("admin", "dev"):
+    if user.role not in ("admin"):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid permissions"
         )
