@@ -371,3 +371,22 @@ async def test_get_posts_raise_500_cache_error_when_get_from_cache(
 
     assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
     assert result.json() == {"detail": "Cache Error"}
+
+
+@pytest.mark.asyncio
+async def test_get_posts_raise_500_generic_error_when_get_from_cache(
+    client: AsyncClient,
+    posts_url: str,
+    user_agent: str,
+):
+    with patch.object(
+        Cache,
+        "get",
+        AsyncMock(side_effect=GenericError),
+    ) as mock_cache:
+        result = await client.get(f"{posts_url}/", headers={"User-Agent": user_agent})
+
+        mock_cache.assert_awaited_once()
+
+    assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert result.json() == {"detail": "Generic Error"}
