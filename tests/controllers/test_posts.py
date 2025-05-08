@@ -212,7 +212,7 @@ async def test_get_posts_success(
         mock_post.assert_awaited_once()
 
     assert result.status_code == status.HTTP_200_OK
-    assert len(result.json()) > 1
+    assert len(result.json()["items"]) > 1
 
 
 @pytest.mark.asyncio
