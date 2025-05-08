@@ -233,3 +233,23 @@ async def test_get_posts_raise_500_database_error(
 
     assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
     assert result.json() == {"detail": "Database integrity error"}
+
+
+@pytest.mark.asyncio
+async def test_get_posts_raise_500_generic_error_from_sql(
+    client: AsyncClient, posts_url: str, user_agent: str
+):
+    with (
+        patch.object(
+            PostsRepository, "get_posts", AsyncMock(side_effect=GenericError)
+        ) as mock_post,
+        patch.multiple(
+            Cache, get=AsyncMock(return_value=None), add=AsyncMock(return_value=None)
+        ),
+    ):
+        result = await client.get(f"{posts_url}/", headers={"User-Agent": user_agent})
+
+        mock_post.assert_awaited_once()
+
+    assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert result.json() == {"detail": "Generic Error"}
