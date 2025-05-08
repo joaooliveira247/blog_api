@@ -5,6 +5,7 @@ import pytest
 
 from blog_api.commands.app import app
 from blog_api.contrib.errors import DatabaseError, GenericError, UnableCreateEntity
+from blog_api.core.cache import Cache
 from blog_api.core.token import gen_jwt
 from blog_api.dependencies.auth import get_current_user
 from blog_api.models.users import UserModel
@@ -192,3 +193,23 @@ async def test_create_post_raise_500_generic_error(
     assert result.json() == {"detail": "Generic Error"}
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_get_posts_success(
+    client: AsyncClient, posts_url: str, user_agent: str, mock_posts_inserted: PostOut
+):
+    with (
+        patch.object(
+            PostsRepository, "get_posts", AsyncMock(return_value=mock_posts_inserted)
+        ) as mock_post,
+        patch.multiple(
+            Cache, get=AsyncMock(return_value=None), add=AsyncMock(return_value=None)
+        ),
+    ):
+        result = await client.get(f"{posts_url}/", headers={"User-Agent": user_agent})
+
+        mock_post.assert_awaited_once()
+
+    assert result.status_code == status.HTTP_200_OK
+    assert len(result.json()) > 1
