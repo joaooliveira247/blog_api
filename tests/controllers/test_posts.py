@@ -334,3 +334,21 @@ async def test_get_posts_raise_500_generic_error_when_add_cache(
 
     assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
     assert result.json() == {"detail": "Generic Error"}
+
+
+@pytest.mark.asyncio
+async def test_get_posts_success_from_cache(
+    client: AsyncClient,
+    posts_url: str,
+    user_agent: str,
+    mock_posts_inserted: list[PostOut],
+):
+    with patch.multiple(
+        Cache,
+        get=AsyncMock(return_value=mock_posts_inserted),
+        add=AsyncMock(side_effect=None),
+    ):
+        result = await client.get(f"{posts_url}/", headers={"User-Agent": user_agent})
+
+    assert result.status_code == status.HTTP_200_OK
+    assert len(result.json()["items"]) > 1
