@@ -7,6 +7,7 @@ from blog_api.commands.app import app
 from blog_api.contrib.errors import (
     CacheError,
     DatabaseError,
+    EncodingError,
     GenericError,
     UnableCreateEntity,
 )
@@ -283,3 +284,28 @@ async def test_get_posts_raise_500_cache_error_when_add_cache(
 
     assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
     assert result.json() == {"detail": "Cache Error"}
+
+
+@pytest.mark.asyncio
+async def test_get_posts_raise_500_encoding_error_when_add_cache(
+    client: AsyncClient,
+    posts_url: str,
+    user_agent: str,
+    mock_post_inserted: list[PostOut],
+):
+    with (
+        patch.object(
+            PostsRepository, "get_posts", AsyncMock(return_value=mock_post_inserted)
+        ) as mock_post,
+        patch.multiple(
+            Cache,
+            get=AsyncMock(return_value=None),
+            add=AsyncMock(side_effect=EncodingError),
+        ),
+    ):
+        result = await client.get(f"{posts_url}/", headers={"User-Agent": user_agent})
+
+        mock_post.assert_awaited_once()
+
+    assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert result.json() == {"detail": "Error when try encoding one object"}
