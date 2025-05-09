@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi_pagination import Page, paginate
 
@@ -64,6 +65,47 @@ async def get_posts(
         await cache.add("post:all", posts)
 
         return paginate(posts)
+    except DatabaseError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+    except (CacheError, EncodingError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+    except GenericError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+
+
+@posts_controller.get("/{post_id}", status_code=status.HTTP_200_OK)
+async def get_post_by_id(
+    db: DatabaseDependency,  # type: ignore
+    cache_conn: CacheDependency,  # type: ignore
+    post_id: UUID,
+) -> PostOut:
+    repository = PostsRepository(db)
+
+    cache = Cache(cache_conn)
+
+    try:
+        post = await cache.get(f"post:{post_id}", PostOut)
+
+        if isinstance(post, PostOut):
+            return post
+
+        post = await repository.get_post_by_id(post_id)
+
+        if post is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Post Not Found."
+            )
+
+        await cache.add(f"post:{post.id}", post)
+
+        return post
+
     except DatabaseError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
