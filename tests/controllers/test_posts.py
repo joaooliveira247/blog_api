@@ -416,3 +416,30 @@ async def test_get_post_by_id_success(
 
         assert result.status_code == status.HTTP_200_OK
         assert result.json()["title"] == mock_post_inserted.title
+
+
+@pytest.mark.asyncio
+async def test_get_post_by_id_raise_404_not_found(
+    client: AsyncClient, posts_url: str, user_agent: str
+):
+    with (
+        patch.object(
+            PostsRepository,
+            "get_post_by_id",
+            AsyncMock(return_value=None),
+        ) as mock_post,
+        patch.multiple(
+            Cache,
+            get=AsyncMock(return_value=None),
+            add=AsyncMock(return_value=None),
+        ),
+    ):
+        result = await client.get(
+            f"{posts_url}/af557ed2-0a2a-4cd5-bdab-7e0e35c34eb6",
+            headers={"User-Agent": user_agent},
+        )
+
+        mock_post.assert_awaited_once()
+
+        assert result.status_code == status.HTTP_404_NOT_FOUND
+        assert result.json() == {"detail": "Post Not Found."}
