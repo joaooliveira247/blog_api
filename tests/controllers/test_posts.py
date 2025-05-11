@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import status
 from unittest.mock import AsyncMock, patch
 from httpx import AsyncClient
@@ -642,3 +643,36 @@ async def test_get_post_by_id_raise_500_generic_error_when_add(
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert result.json() == {"detail": "Generic Error"}
+
+
+@pytest.mark.asyncio
+async def test_get_posts_by_user_id_return_success(
+    client: AsyncClient,
+    posts_url: str,
+    user_agent: str,
+    user_id: UUID,
+    mock_posts_inserted: list[PostOut],
+):
+    for post in mock_posts_inserted:
+        post.author == "Username"
+
+    with (
+        patch.object(
+            PostsRepository,
+            "get_posts_by_user_id",
+            AsyncMock(return_value=mock_posts_inserted),
+        ) as mock_post,
+        patch.multiple(
+            Cache,
+            get=AsyncMock(return_value=None),
+            add=AsyncMock(return_value=None),
+        ),
+    ):
+        result = await client.get(
+            f"{posts_url}/user/{user_id}", headers={"User-Agent": user_agent}
+        )
+
+        mock_post.assert_awaited_once()
+
+        assert result.status_code == status.HTTP_200_OK
+        assert len(result.json()["items"]) > 1
