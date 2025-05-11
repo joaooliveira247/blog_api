@@ -118,3 +118,37 @@ async def get_post_by_id(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
         )
+
+
+@posts_controller.get("/user/{user_id}", status_code=status.HTTP_200_OK)
+async def get_post_by_user_id(
+    db: DatabaseDependency,  # type: ignore
+    cache_conn: CacheDependency,  # type: ignore
+    user_id: UUID,
+) -> Page[PostOut]:
+    repository = PostsRepository(db)
+
+    cache = Cache(cache_conn)
+
+    try:
+        if posts := await cache.get(f"posts:{user_id}", PostOut):
+            return paginate(posts)
+
+        posts = await repository.get_posts_by_user_id(user_id)
+
+        await cache.add(f"posts:{user_id}", posts)
+
+        return paginate(posts)
+
+    except DatabaseError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+    except (CacheError, EncodingError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+    except GenericError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
