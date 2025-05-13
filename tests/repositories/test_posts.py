@@ -218,7 +218,8 @@ async def test_get_post_by_user_id_success(
     mock_return_value = mock_posts_inserted[1:2]
 
     for post in mock_return_value:
-        post.author = "joshingly"
+        post.author_id = user_id
+        post.author_username = "joshingly"
 
     with patch.object(
         PostsRepository, "get_posts_by_user_id", new_callable=AsyncMock
