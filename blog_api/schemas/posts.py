@@ -1,3 +1,4 @@
+from uuid import UUID
 from pydantic import BaseModel, Field
 from blog_api.contrib.schemas import OutMixin
 
@@ -9,7 +10,8 @@ class PostBase(BaseModel):
 
 
 class PostOut(PostBase, OutMixin):
-    author: str = Field(..., description="Post author username")
+    author_id: UUID = Field(..., description="Post author id")
+    author_username: str = Field(..., description="Post author username")
 
 
 class PostIn(PostBase): ...
