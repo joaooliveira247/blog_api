@@ -688,7 +688,8 @@ async def test_get_posts_by_user_id_raise_500_database_error(
     mock_posts_inserted: list[PostOut],
 ):
     for post in mock_posts_inserted:
-        post.author == "Username"
+        post.author_id = user_id
+        post.author_username == "Username"
 
     with (
         patch.object(
@@ -721,7 +722,8 @@ async def test_get_posts_by_user_id_raise_500_generic_error_from_sql(
     mock_posts_inserted: list[PostOut],
 ):
     for post in mock_posts_inserted:
-        post.author == "Username"
+        post.author_id = user_id
+        post.author_username == "Username"
 
     with (
         patch.object(
@@ -781,7 +783,8 @@ async def test_get_posts_by_user_id_raise_500_cache_error_from_cache(
     mock_posts_inserted: list[PostOut],
 ):
     for post in mock_posts_inserted:
-        post.author == "Username"
+        post.author_id = user_id
+        post.author_username == "Username"
 
     with patch.object(
         Cache,
@@ -807,7 +810,8 @@ async def test_get_posts_by_user_id_raise_500_generic_error_from_cache(
     mock_posts_inserted: list[PostOut],
 ):
     for post in mock_posts_inserted:
-        post.author == "Username"
+        post.author_id = user_id
+        post.author_username == "Username"
 
     with patch.object(
         Cache,
@@ -833,7 +837,8 @@ async def test_get_posts_by_user_id_raise_500_cache_error_from_cache_when_add(
     mock_posts_inserted: list[PostOut],
 ):
     for post in mock_posts_inserted:
-        post.author == "Username"
+        post.author_id = user_id
+        post.author_username == "Username"
 
     with (
         patch.object(
@@ -866,7 +871,8 @@ async def test_get_posts_by_user_id_raise_500_encoding_error_from_cache_when_add
     mock_posts_inserted: list[PostOut],
 ):
     for post in mock_posts_inserted:
-        post.author == "Username"
+        post.author_id = user_id
+        post.author_username == "Username"
 
     with (
         patch.object(
@@ -899,7 +905,8 @@ async def test_get_posts_by_user_id_raise_500_generic_error_from_cache_when_add(
     mock_posts_inserted: list[PostOut],
 ):
     for post in mock_posts_inserted:
-        post.author == "Username"
+        post.author_id = user_id
+        post.author_username == "Username"
 
     with (
         patch.object(
