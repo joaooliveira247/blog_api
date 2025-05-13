@@ -654,7 +654,8 @@ async def test_get_posts_by_user_id_return_success(
     mock_posts_inserted: list[PostOut],
 ):
     for post in mock_posts_inserted:
-        post.author == "Username"
+        post.author_id = user_id
+        post.author_username == "Username"
 
     with (
         patch.object(
@@ -753,7 +754,8 @@ async def test_get_posts_by_user_id_success_from_cache(
     mock_posts_inserted: list[PostOut],
 ):
     for post in mock_posts_inserted:
-        post.author == "Username"
+        post.author_id = user_id
+        post.author_username == "Username"
 
     with patch.object(
         Cache,
