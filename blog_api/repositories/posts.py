@@ -90,7 +90,8 @@ class PostsRepository(BaseRepository):
                 content=post.content,
                 created_at=post.created_at,
                 updated_at=post.updated_at,
-                author=post.user.username,
+                author_id=post.user.id,
+                author_username=post.user.username,
             )
 
     async def get_posts_by_user_id(self, user_id: UUID) -> list[PostOut]:
@@ -116,7 +117,8 @@ class PostsRepository(BaseRepository):
                     content=post.content,
                     created_at=post.created_at,
                     updated_at=post.updated_at,
-                    author=post.user.username,
+                    author_id=post.user.id,
+                    author_username=post.user.username,
                 )
                 for post in posts
             ]
