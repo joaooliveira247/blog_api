@@ -1061,3 +1061,36 @@ async def test_update_post_raise_401_current_user_not_own_post(
         }
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_update_post_raise_500_database_error(
+    client: AsyncClient,
+    posts_url: str,
+    user_agent: str,
+    mock_user_out_inserted: UserOut,
+    mock_user,
+    mock_post_inserted,
+    mock_update_post,
+):
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.object(
+        PostsRepository,
+        "get_post_by_id",
+        AsyncMock(side_effect=DatabaseError),
+    ) as mock_post:
+        result = await client.put(
+            f"{posts_url}/{mock_post_inserted.id}",
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            json=mock_update_post,
+        )
+
+        mock_post.assert_awaited_once_with(mock_post_inserted.id)
+
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert result.json() == {"detail": "Database integrity error"}
+
+    app.dependency_overrides.clear()
