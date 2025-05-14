@@ -1307,3 +1307,31 @@ async def test_delete_post_raise_500_unable_delete_entity_error(
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert result.json() == {"detail": "Unable Delete Entity"}
+
+
+@pytest.mark.asyncio
+async def test_delete_post_raise_500_generic_error(
+    client: AsyncClient,
+    posts_url: str,
+    user_agent: str,
+    mock_post_inserted: PostOut,
+    mock_user,
+    mock_user_out_inserted,
+):
+    mock_post_inserted.author_id = mock_user_out_inserted.id
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.multiple(
+        PostsRepository,
+        get_post_by_id=AsyncMock(return_value=mock_post_inserted),
+        delete_post=AsyncMock(side_effect=GenericError),
+    ):
+        result = await client.delete(
+            f"{posts_url}/{mock_post_inserted.id}",
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+        )
+
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert result.json() == {"detail": "Generic Error"}
