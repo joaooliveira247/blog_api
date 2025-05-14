@@ -961,3 +961,31 @@ async def test_update_post_success(
         assert result.text == ""
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_update_post_raise_422_invalid_body(
+    client: AsyncClient,
+    posts_url: str,
+    user_agent: str,
+    mock_user_out_inserted: UserOut,
+    mock_user,
+    mock_post_inserted,  # noqa: F811
+    mock_update_post,
+):
+    mock_post_inserted.author_id = mock_user_out_inserted.id
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    result = await client.put(
+        f"{posts_url}/{mock_post_inserted.id}",
+        headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+        json={"title": 1234},
+    )
+
+    assert result.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert result.json()["detail"][0]["msg"] == "Input should be a valid string"
+
+    app.dependency_overrides.clear()
