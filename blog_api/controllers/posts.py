@@ -8,6 +8,7 @@ from blog_api.contrib.errors import (
     EncodingError,
     GenericError,
     UnableCreateEntity,
+    UnableDeleteEntity,
     UnableUpdateEntity,
 )
 from blog_api.core.cache import Cache
@@ -181,6 +182,40 @@ async def update_post(
         await repository.update_post(post_id, body.model_dump())
 
     except (DatabaseError, UnableUpdateEntity) as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+    except GenericError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+
+
+@posts_controller.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_post(
+    db: DatabaseDependency,  # type: ignore
+    post_id: UUID,
+    user: UserOut = Depends(get_current_user),
+) -> None:
+    repository = PostsRepository(db)
+
+    try:
+        post = await repository.get_post_by_id(post_id)
+
+        if not post:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
+            )
+
+        if post.author_id is not user.id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"{post_id} not belongs current user",
+            )
+
+        await repository.delete_post(post_id)
+
+    except (DatabaseError, UnableDeleteEntity) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
         )
