@@ -1399,6 +1399,41 @@ async def test_update_post_raise_422_invalid_body(
 
 
 @pytest.mark.asyncio
+async def test_update_post_raise_404_post_not_found(
+    client: AsyncClient,
+    admin_url: str,
+    user_agent: str,
+    mock_user_out_inserted: UserOut,
+    mock_user,
+    mock_post_inserted,  # noqa: F811
+    mock_update_post,
+):
+    mock_user_out_inserted.role = "admin"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.object(
+        PostsRepository,
+        "get_post_by_id",
+        AsyncMock(return_value=None),
+    ) as mock_post:
+        result = await client.put(
+            f"{admin_url}/posts/{mock_post_inserted.id}",
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            json=mock_update_post,
+        )
+
+        mock_post.assert_awaited_once()
+
+        assert result.status_code == status.HTTP_404_NOT_FOUND
+        assert result.json() == {"detail": "Post not found"}
+
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
 async def test_update_post_raise_500_database_error(
     client: AsyncClient,
     admin_url: str,
