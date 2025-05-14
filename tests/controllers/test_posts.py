@@ -1024,3 +1024,40 @@ async def test_update_post_raise_404_post_not_found(
         assert result.json() == {"detail": "Post not found"}
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_update_post_raise_401_current_user_not_own_post(
+    client: AsyncClient,
+    posts_url: str,
+    user_agent: str,
+    mock_user_out_inserted: UserOut,
+    mock_user,
+    mock_post_inserted,  # noqa: F811
+    mock_update_post,
+):
+    mock_post_inserted.author_id = "5f7d0e49-e4ff-45d2-bfa8-0a6f41351745"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.object(
+        PostsRepository,
+        "get_post_by_id",
+        AsyncMock(return_value=mock_post_inserted),
+    ) as mock_post:
+        result = await client.put(
+            f"{posts_url}/{mock_post_inserted.id}",
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            json=mock_update_post,
+        )
+
+        mock_post.assert_awaited_once_with(mock_post_inserted.id)
+
+        assert result.status_code == status.HTTP_401_UNAUTHORIZED
+        assert result.json() == {
+            "detail": f"{mock_post_inserted.id} not belongs current user"
+        }
+
+    app.dependency_overrides.clear()
