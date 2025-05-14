@@ -15,3 +15,9 @@ class PostOut(PostBase, OutMixin):
 
 
 class PostIn(PostBase): ...
+
+
+class PostUpdate(BaseModel):
+    title: str | None = Field(None, description="Post title")
+    categories: list[str] | None = Field(None, description="Post categories")
+    content: str | None = Field(None, description="Post content")
