@@ -1,5 +1,5 @@
 from uuid import UUID
-from fastapi import APIRouter, HTTPException, Depends, Query, status
+from fastapi import APIRouter, Body, HTTPException, Depends, Query, status
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -8,9 +8,11 @@ from pydantic import EmailStr
 
 from blog_api.core.cache import Cache
 from blog_api.models.users import UserModel
+from blog_api.repositories.posts import PostsRepository
 from blog_api.repositories.users import UsersRepository
 from blog_api.dependencies.dependencies import CacheDependency, DatabaseDependency
 from blog_api.dependencies.auth import get_current_user
+from blog_api.schemas.posts import PostUpdate
 from blog_api.schemas.response import UpdateSuccess
 from blog_api.schemas.users import RoleUpdate, UserOut
 from blog_api.contrib.errors import (
@@ -176,6 +178,40 @@ async def delete_user(
     try:
         await repository.delete_user(user_id)
     except (DatabaseError, UnableDeleteEntity) as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+    except GenericError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+
+
+@admin_controller.put("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def update_post(
+    db: DatabaseDependency,  # type: ignore
+    post_id: UUID,
+    user: UserOut = Depends(get_current_user),
+    body: PostUpdate = Body(...),
+) -> None:
+    if user.role not in ("admin"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid permissions"
+        )
+
+    repository = PostsRepository(db)
+
+    try:
+        post = await repository.get_post_by_id(post_id)
+
+        if not post:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
+            )
+
+        await repository.update_post(post_id, body.model_dump())
+
+    except (DatabaseError, UnableUpdateEntity) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
         )
