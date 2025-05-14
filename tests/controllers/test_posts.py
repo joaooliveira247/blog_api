@@ -1219,3 +1219,62 @@ async def test_delete_post_raise_404_post_not_found(
 
         assert result.status_code == status.HTTP_404_NOT_FOUND
         assert result.json() == {"detail": "Post not found"}
+
+
+@pytest.mark.asyncio
+async def test_delete_post_raise_401_current_user_not_own_post(
+    client: AsyncClient,
+    posts_url: str,
+    user_agent: str,
+    mock_post_inserted: PostOut,
+    mock_user,
+    mock_user_out_inserted,
+):
+    mock_post_inserted.author_id = UUID("c1ac05e4-0e85-454b-9dc4-7d4171642540")
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.multiple(
+        PostsRepository,
+        get_post_by_id=AsyncMock(return_value=mock_post_inserted),
+        delete_post=AsyncMock(return_value=None),
+    ):
+        result = await client.delete(
+            f"{posts_url}/{mock_post_inserted.id}",
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+        )
+
+        assert result.status_code == status.HTTP_401_UNAUTHORIZED
+        assert result.json() == {
+            "detail": f"{mock_post_inserted.id} not belongs current user"
+        }
+
+
+@pytest.mark.asyncio
+async def test_delete_post_raise_500_database_error(
+    client: AsyncClient,
+    posts_url: str,
+    user_agent: str,
+    mock_post_inserted: PostOut,
+    mock_user,
+    mock_user_out_inserted,
+):
+    mock_post_inserted.author_id = mock_user_out_inserted.id
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.multiple(
+        PostsRepository,
+        get_post_by_id=AsyncMock(return_value=mock_post_inserted),
+        delete_post=AsyncMock(side_effect=DatabaseError),
+    ):
+        result = await client.delete(
+            f"{posts_url}/{mock_post_inserted.id}",
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+        )
+
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert result.json() == {"detail": "Database integrity error"}
