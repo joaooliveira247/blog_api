@@ -1561,3 +1561,27 @@ async def test_delete_post_success_as_admin(
         assert result.text == ""
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_delete_post_success_raise_401_invalid_permissions(
+    client: AsyncClient,
+    admin_url: str,
+    user_agent: str,
+    mock_user_out_inserted: UserOut,
+    mock_user,
+    mock_post_inserted,  # noqa: F811
+):
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    result = await client.delete(
+        f"{admin_url}/posts/{mock_post_inserted.id}",
+        headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+    )
+
+    assert result.status_code == status.HTTP_401_UNAUTHORIZED
+    assert result.json() == {"detail": "invalid permissions"}
+
+    app.dependency_overrides.clear()
