@@ -1530,3 +1530,34 @@ async def test_update_post_raise_500_generic_error(
         assert result.json() == {"detail": "Generic Error"}
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_delete_post_success_as_admin(
+    client: AsyncClient,
+    admin_url: str,
+    user_agent: str,
+    mock_user_out_inserted: UserOut,
+    mock_user,
+    mock_post_inserted,  # noqa: F811
+):
+    mock_user_out_inserted.role = "admin"
+
+    jwt = gen_jwt(360, mock_user)
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.multiple(
+        PostsRepository,
+        get_post_by_id=AsyncMock(return_value=mock_post_inserted),
+        delete_post=AsyncMock(return_value=None),
+    ):
+        result = await client.delete(
+            f"{admin_url}/posts/{mock_post_inserted.id}",
+            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+        )
+
+        assert result.status_code == status.HTTP_204_NO_CONTENT
+        assert result.text == ""
+
+    app.dependency_overrides.clear()
