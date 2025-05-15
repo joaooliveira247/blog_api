@@ -221,6 +221,39 @@ async def update_post(
         )
 
 
+@admin_controller.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_post(
+    db: DatabaseDependency,  # type: ignore
+    post_id: UUID,
+    user: UserOut = Depends(get_current_user),
+) -> None:
+    if user.role not in ("admin",):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid permissions"
+        )
+
+    repository = PostsRepository(db)
+
+    try:
+        post = await repository.get_post_by_id(post_id)
+
+        if not post:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
+            )
+
+        await repository.delete_post(post_id)
+
+    except (DatabaseError, UnableDeleteEntity) as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+    except GenericError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+
+
 @admin_controller.get("/docs", status_code=status.HTTP_200_OK, include_in_schema=False)
 async def get_swagger_ui(user: UserOut = Depends(get_current_user)) -> HTMLResponse:
     if user.role not in ("admin", "dev"):
