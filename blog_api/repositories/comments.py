@@ -1,20 +1,22 @@
 from uuid import UUID
-from blog_api.contrib.errors import NoResultFound, NothingToUpdate
-from blog_api.contrib.repositories import BaseRepository
-from blog_api.repositories.posts import PostsRepository
+
+from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import OperationalError, IntegrityError
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload
-from blog_api.models.comments import CommentModel
-from blog_api.models.users import UserModel
-from blog_api.models.posts import PostModel
+
 from blog_api.contrib.errors import (
     DatabaseError,
     GenericError,
+    NoResultFound,
+    NothingToUpdate,
     UnableCreateEntity,
     UnableDeleteEntity,
 )
+from blog_api.contrib.repositories import BaseRepository
+from blog_api.models.comments import CommentModel
+from blog_api.models.posts import PostModel
+from blog_api.repositories.posts import PostsRepository
 from blog_api.schemas.comments import CommentOut
 from blog_api.schemas.posts import PostOut
 
@@ -55,7 +57,8 @@ class CommentsRepository(BaseRepository):
             try:
                 result = await session.execute(
                     select(CommentModel).options(
-                        joinedload(CommentModel.post), joinedload(CommentModel.user)
+                        joinedload(CommentModel.post),
+                        joinedload(CommentModel.user),
                     )
                 )
             except OperationalError:
@@ -82,7 +85,8 @@ class CommentsRepository(BaseRepository):
                 result = await session.execute(
                     select(CommentModel)
                     .options(
-                        joinedload(CommentModel.post), joinedload(CommentModel.user)
+                        joinedload(CommentModel.post),
+                        joinedload(CommentModel.user),
                     )
                     .filter(CommentModel.id == id)
                 )
@@ -107,16 +111,12 @@ class CommentsRepository(BaseRepository):
 
     async def get_comments_by_user_id(self, user_id: UUID) -> list[CommentOut]:
         async with self.db as session:
-            user: UserModel | None = await self.user_reposiotry.get_user_by_id(user_id)
-
-            if user is None:
-                raise NoResultFound("user_id")
-
             try:
                 result = await session.execute(
                     select(CommentModel)
                     .options(
-                        joinedload(CommentModel.post), joinedload(CommentModel.user)
+                        joinedload(CommentModel.post),
+                        joinedload(CommentModel.user),
                     )
                     .filter(CommentModel.user_id == user_id)
                 )
@@ -140,16 +140,19 @@ class CommentsRepository(BaseRepository):
 
     async def get_comments_by_post_id(self, post_id: UUID) -> list[CommentOut]:
         async with self.db as session:
-            user: PostModel | None = await self.post_repository.get_post_by_id(post_id)
+            post: PostModel | None = await self.post_repository.get_post_by_id(
+                post_id
+            )
 
-            if user is None:
+            if post is None:
                 raise NoResultFound("post_id")
 
             try:
                 result = await session.execute(
                     select(CommentModel)
                     .options(
-                        joinedload(CommentModel.post), joinedload(CommentModel.user)
+                        joinedload(CommentModel.post),
+                        joinedload(CommentModel.user),
                     )
                     .filter(CommentModel.post_id == post_id)
                 )
