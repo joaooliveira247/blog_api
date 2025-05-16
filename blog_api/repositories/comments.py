@@ -73,8 +73,10 @@ class CommentsRepository(BaseRepository):
                     content=comment.content,
                     created_at=comment.created_at,
                     updated_at=comment.updated_at,
+                    post_id=comment.post.id,
                     post_title=comment.post.title,
-                    author=comment.user.username,
+                    author_id=comment.user.id,
+                    author_username=comment.user.username,
                 )
                 for comment in comments
             ]
@@ -105,8 +107,10 @@ class CommentsRepository(BaseRepository):
                 content=comment.content,
                 created_at=comment.created_at,
                 updated_at=comment.updated_at,
+                post_id=comment.post.id,
                 post_title=comment.post.title,
-                author=comment.user.username,
+                author_id=comment.user.id,
+                author_username=comment.user.username,
             )
 
     async def get_comments_by_user_id(self, user_id: UUID) -> list[CommentOut]:
@@ -132,17 +136,17 @@ class CommentsRepository(BaseRepository):
                     content=comment.content,
                     created_at=comment.created_at,
                     updated_at=comment.updated_at,
+                    post_id=comment.post.id,
                     post_title=comment.post.title,
-                    author=comment.user.username,
+                    author_id=comment.user.id,
+                    author_username=comment.user.username,
                 )
                 for comment in comments
             ]
 
     async def get_comments_by_post_id(self, post_id: UUID) -> list[CommentOut]:
         async with self.db as session:
-            post: PostModel | None = await self.post_repository.get_post_by_id(
-                post_id
-            )
+            post: PostModel | None = await self.post_repository.get_post_by_id(post_id)
 
             if post is None:
                 raise NoResultFound("post_id")
@@ -168,8 +172,10 @@ class CommentsRepository(BaseRepository):
                     content=comment.content,
                     created_at=comment.created_at,
                     updated_at=comment.updated_at,
+                    post_id=comment.post.id,
                     post_title=comment.post.title,
-                    author=comment.user.username,
+                    author_id=comment.user.id,
+                    author_username=comment.user.username,
                 )
                 for comment in comments
             ]
