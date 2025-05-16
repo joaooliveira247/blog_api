@@ -48,15 +48,10 @@ async def test_create_comment_success(
 async def test_create_comment_raise_no_result_found_post_id(
     mock_session: AsyncSession, mock_comment: CommentModel, mock_user_inserted
 ):
-    users_repository = AsyncMock()
-    users_repository.get_user_by_id.return_value = mock_user_inserted
-
     posts_repository = AsyncMock()
     posts_repository.get_post_by_id.return_value = None
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with pytest.raises(NoResultFound, match="Result not found with post_id"):
         await comments_repository.create_comment(mock_comment)
@@ -68,17 +63,12 @@ async def test_create_comment_raise_no_result_found_post_id(
 async def test_create_comment_raise_database_error(
     mock_session: AsyncSession, mock_comment: CommentModel
 ):
-    users_repository = AsyncMock()
-    users_repository.get_user_by_id.return_value = MagicMock()
-
     posts_repository = AsyncMock()
     posts_repository.get_post_by_id.return_value = MagicMock()
 
     mock_session.add.side_effect = OperationalError("stmt", "params", "orig")
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with pytest.raises(DatabaseError, match="Database integrity error"):
         await comments_repository.create_comment(mock_comment)
@@ -91,17 +81,12 @@ async def test_create_comment_raise_database_error(
 async def test_create_comment_raise_unable_create_entity(
     mock_session: AsyncSession, mock_comment: CommentModel
 ):
-    users_repository = AsyncMock()
-    users_repository.get_user_by_id.return_value = MagicMock()
-
     posts_repository = AsyncMock()
     posts_repository.get_post_by_id.return_value = MagicMock()
 
     mock_session.add.side_effect = IntegrityError("stmt", "params", "orig")
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with pytest.raises(
         UnableCreateEntity,
@@ -117,17 +102,12 @@ async def test_create_comment_raise_unable_create_entity(
 async def test_create_comment_raise_generic_error(
     mock_session: AsyncSession, mock_comment: CommentModel
 ):
-    users_repository = AsyncMock()
-    users_repository.get_user_by_id.return_value = MagicMock()
-
     posts_repository = AsyncMock()
     posts_repository.get_post_by_id.return_value = MagicMock()
 
     mock_session.add.side_effect = Exception()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with pytest.raises(GenericError, match="Generic Error"):
         await comments_repository.create_comment(mock_comment)
