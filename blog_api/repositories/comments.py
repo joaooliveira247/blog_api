@@ -16,6 +16,7 @@ from blog_api.contrib.errors import (
     UnableDeleteEntity,
 )
 from blog_api.schemas.comments import CommentOut
+from blog_api.schemas.posts import PostOut
 
 
 class CommentsRepository(BaseRepository):
@@ -28,7 +29,7 @@ class CommentsRepository(BaseRepository):
         self.post_repository = post_repository
 
     async def create_comment(self, comment: CommentModel) -> None:
-        post: PostModel | None = await self.post_repository.get_post_by_id(
+        post: PostOut | None = await self.post_repository.get_post_by_id(
             comment.post_id
         )
 
