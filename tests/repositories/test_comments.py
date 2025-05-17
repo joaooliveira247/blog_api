@@ -120,13 +120,9 @@ async def test_create_comment_raise_generic_error(
 async def test_get_comments_return_success(
     mock_session: AsyncSession, mock_comments_inserted: list[CommentOut]
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "get_comments", new_callable=AsyncMock
@@ -143,13 +139,9 @@ async def test_get_comments_return_success(
 async def test_get_comments_return_success_but_empty(
     mock_session: AsyncSession,
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "get_comments", new_callable=AsyncMock
