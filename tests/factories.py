@@ -1,6 +1,8 @@
 from datetime import datetime
+
 from faker import Faker
 from faker.providers import date_time
+
 from blog_api.core.security import gen_hash
 
 fake: Faker = Faker()
@@ -43,7 +45,8 @@ def single_post_data() -> dict:
 def many_posts_data() -> list[dict]:
     created_at_posts = [
         datetime.combine(
-            fake.date_between(start_date="-1y", end_date="+1w"), datetime.min.time()
+            fake.date_between(start_date="-1y", end_date="+1w"),
+            datetime.min.time(),
         ).timestamp()
         for _ in range(5)
     ]
@@ -118,7 +121,8 @@ def comment_data() -> dict:
 def many_comments_data() -> list[dict]:
     created_at_comments = [
         datetime.combine(
-            fake.date_between(start_date="-1y", end_date="+1w"), datetime.min.time()
+            fake.date_between(start_date="-1y", end_date="+1w"),
+            datetime.min.time(),
         ).timestamp()
         for _ in range(5)
     ]
@@ -129,8 +133,10 @@ def many_comments_data() -> list[dict]:
             "content": fake.text(),
             "created_at": created_at,
             "updated_at": created_at,
+            "post_id": fake.uuid4(),
             "post_title": fake.sentence(),
-            "author": fake.user_name(),
+            "author_id": fake.uuid4(),
+            "author_username": fake.user_name(),
         }
         for created_at in created_at_comments
     ]
