@@ -553,13 +553,9 @@ async def test_update_comment_raise_generic_error(
 async def test_delete_comment_return_success(
     mock_session: AsyncSession, comment_id: UUID
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "delete_comment", new_callable=AsyncMock
