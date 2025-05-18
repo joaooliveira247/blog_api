@@ -26,13 +26,9 @@ async def test_create_comment_success(
     comment_id: UUID,
 ):
     posts_repository = AsyncMock()
-    posts_repository.get_post_by_id = AsyncMock(
-        return_value=mock_post_inserted
-    )
+    posts_repository.get_post_by_id = AsyncMock(return_value=mock_post_inserted)
 
-    mock_session.commit.side_effect = lambda: setattr(
-        mock_comment, "id", comment_id
-    )
+    mock_session.commit.side_effect = lambda: setattr(mock_comment, "id", comment_id)
 
     comments_repository = CommentsRepository(mock_session, posts_repository)
 
@@ -201,9 +197,7 @@ async def test_get_comment_by_id_return_success(
     ) as mock:
         mock.return_value = mock_comment_inserted
 
-        result = await comments_repository.get_comment_by_id(
-            mock_comment_inserted.id
-        )
+        result = await comments_repository.get_comment_by_id(mock_comment_inserted.id)
 
         mock.assert_called_once_with(mock_comment_inserted.id)
         assert result == mock_comment_inserted
@@ -222,9 +216,7 @@ async def test_get_comment_by_id_return_success_but_none(
     ) as mock:
         mock.return_value = None
 
-        result = await comments_repository.get_comment_by_id(
-            mock_comment_inserted.id
-        )
+        result = await comments_repository.get_comment_by_id(mock_comment_inserted.id)
 
         mock.assert_called_once_with(mock_comment_inserted.id)
         assert result is None
@@ -244,9 +236,7 @@ async def test_get_comment_by_id_raise_database_error(
         mock.side_effect = DatabaseError
 
         with pytest.raises(DatabaseError, match="Database integrity error"):
-            await comments_repository.get_comment_by_id(
-                mock_comment_inserted.id
-            )
+            await comments_repository.get_comment_by_id(mock_comment_inserted.id)
 
         mock.assert_called_once_with(mock_comment_inserted.id)
 
@@ -265,9 +255,7 @@ async def test_get_comment_by_id_raise_generic_error(
         mock.side_effect = GenericError
 
         with pytest.raises(GenericError, match="Generic Error"):
-            await comments_repository.get_comment_by_id(
-                mock_comment_inserted.id
-            )
+            await comments_repository.get_comment_by_id(mock_comment_inserted.id)
 
         mock.assert_called_once_with(mock_comment_inserted.id)
 
@@ -456,9 +444,7 @@ async def test_update_comment_return_success(
     ) as mock:
         mock.return_value = None
 
-        await comments_repository.update_comment(
-            comment_id, mock_comment_update
-        )
+        await comments_repository.update_comment(comment_id, mock_comment_update)
 
         mock.assert_called_once_with(comment_id, mock_comment_update)
 
@@ -477,9 +463,7 @@ async def test_update_comment_raise_nothing_to_update(
         mock.side_effect = NothingToUpdate
 
         with pytest.raises(NothingToUpdate, match="Nothing to update"):
-            await comments_repository.update_comment(
-                comment_id, mock_comment_update
-            )
+            await comments_repository.update_comment(comment_id, mock_comment_update)
 
         mock.assert_called_once_with(comment_id, mock_comment_update)
 
@@ -497,12 +481,8 @@ async def test_update_comment_raise_no_result_found(
     ) as mock:
         mock.side_effect = NoResultFound("comment_id")
 
-        with pytest.raises(
-            NoResultFound, match="Result not found with comment_id"
-        ):
-            await comments_repository.update_comment(
-                comment_id, mock_comment_update
-            )
+        with pytest.raises(NoResultFound, match="Result not found with comment_id"):
+            await comments_repository.update_comment(comment_id, mock_comment_update)
 
         mock.assert_called_once_with(comment_id, mock_comment_update)
 
@@ -521,9 +501,7 @@ async def test_update_comment_raise_database_error(
         mock.side_effect = DatabaseError
 
         with pytest.raises(DatabaseError, match="Database integrity error"):
-            await comments_repository.update_comment(
-                comment_id, mock_comment_update
-            )
+            await comments_repository.update_comment(comment_id, mock_comment_update)
 
         mock.assert_called_once_with(comment_id, mock_comment_update)
 
@@ -542,9 +520,7 @@ async def test_update_comment_raise_generic_error(
         mock.side_effect = GenericError
 
         with pytest.raises(GenericError, match="Generic Error"):
-            await comments_repository.update_comment(
-                comment_id, mock_comment_update
-            )
+            await comments_repository.update_comment(comment_id, mock_comment_update)
 
         mock.assert_called_once_with(comment_id, mock_comment_update)
 
@@ -571,22 +547,16 @@ async def test_delete_comment_return_success(
 async def test_delete_comment_raise_no_result_found(
     mock_session: AsyncSession, comment_id: UUID
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "delete_comment", new_callable=AsyncMock
     ) as mock:
         mock.side_effect = NoResultFound("comment_id")
 
-        with pytest.raises(
-            NoResultFound, match="Result not found with comment_id"
-        ):
+        with pytest.raises(NoResultFound, match="Result not found with comment_id"):
             await comments_repository.delete_comment(comment_id)
 
         mock.assert_called_once_with(comment_id)
@@ -596,13 +566,9 @@ async def test_delete_comment_raise_no_result_found(
 async def test_delete_comment_raise_database_error(
     mock_session: AsyncSession, comment_id: UUID
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "delete_comment", new_callable=AsyncMock
@@ -619,13 +585,9 @@ async def test_delete_comment_raise_database_error(
 async def test_delete_comment_raise_unable_delete_entity(
     mock_session: AsyncSession, comment_id: UUID
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "delete_comment", new_callable=AsyncMock
@@ -642,13 +604,9 @@ async def test_delete_comment_raise_unable_delete_entity(
 async def test_delete_comment_raise_generic_error(
     mock_session: AsyncSession, comment_id: UUID
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "delete_comment", new_callable=AsyncMock
