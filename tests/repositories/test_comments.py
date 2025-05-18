@@ -447,13 +447,9 @@ async def test_get_comments_by_post_id_raise_generic_error(
 async def test_update_comment_return_success(
     mock_session: AsyncSession, comment_id: UUID, mock_comment_update: str
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "update_comment", new_callable=AsyncMock
