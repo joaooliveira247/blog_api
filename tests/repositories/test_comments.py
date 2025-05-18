@@ -192,13 +192,9 @@ async def test_get_comments_raise_generic_error(mock_session: AsyncSession):
 async def test_get_comment_by_id_return_success(
     mock_session: AsyncSession, mock_comment_inserted: CommentOut
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "get_comment_by_id", new_callable=AsyncMock
@@ -217,13 +213,9 @@ async def test_get_comment_by_id_return_success(
 async def test_get_comment_by_id_return_success_but_none(
     mock_session: AsyncSession, mock_comment_inserted: CommentOut
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "get_comment_by_id", new_callable=AsyncMock
