@@ -156,13 +156,9 @@ async def test_get_comments_return_success_but_empty(
 
 @pytest.mark.asyncio
 async def test_get_comments_raise_database_error(mock_session: AsyncSession):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "get_comments", new_callable=AsyncMock
@@ -177,13 +173,9 @@ async def test_get_comments_raise_database_error(mock_session: AsyncSession):
 
 @pytest.mark.asyncio
 async def test_get_comments_raise_generic_error(mock_session: AsyncSession):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "get_comments", new_callable=AsyncMock
