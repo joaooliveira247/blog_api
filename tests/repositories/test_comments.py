@@ -396,14 +396,10 @@ async def test_get_comments_by_post_id_return_success_but_empty(
 async def test_get_comments_by_user_id_raise_no_result_found_post_id(
     mock_session: AsyncSession, post_id: UUID
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
     posts_repository.get_post_by_id.return_value = None
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with pytest.raises(NoResultFound, match="Result not found with post_id"):
         await comments_repository.get_comments_by_post_id(post_id)
@@ -413,13 +409,9 @@ async def test_get_comments_by_user_id_raise_no_result_found_post_id(
 async def test_get_comments_by_post_id_raise_database_error(
     mock_session: AsyncSession, post_id: UUID
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "get_comments_by_post_id", new_callable=AsyncMock
@@ -436,13 +428,9 @@ async def test_get_comments_by_post_id_raise_database_error(
 async def test_get_comments_by_post_id_raise_generic_error(
     mock_session: AsyncSession, post_id: UUID
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "get_comments_by_post_id", new_callable=AsyncMock
