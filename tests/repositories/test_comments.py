@@ -467,13 +467,9 @@ async def test_update_comment_return_success(
 async def test_update_comment_raise_nothing_to_update(
     mock_session: AsyncSession, comment_id: UUID, mock_comment_update: str
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "update_comment", new_callable=AsyncMock
@@ -492,13 +488,9 @@ async def test_update_comment_raise_nothing_to_update(
 async def test_update_comment_raise_no_result_found(
     mock_session: AsyncSession, comment_id: UUID, mock_comment_update: str
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "update_comment", new_callable=AsyncMock
@@ -519,13 +511,9 @@ async def test_update_comment_raise_no_result_found(
 async def test_update_comment_raise_database_error(
     mock_session: AsyncSession, comment_id: UUID, mock_comment_update: str
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "update_comment", new_callable=AsyncMock
@@ -544,13 +532,9 @@ async def test_update_comment_raise_database_error(
 async def test_update_comment_raise_generic_error(
     mock_session: AsyncSession, comment_id: UUID, mock_comment_update: str
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "update_comment", new_callable=AsyncMock
