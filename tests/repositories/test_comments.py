@@ -357,13 +357,9 @@ async def test_get_comments_by_post_id_return_success(
     mock_comments_inserted_same_post: list[CommentOut],
     post_id: UUID,
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "get_comments_by_post_id", new_callable=AsyncMock
@@ -381,13 +377,9 @@ async def test_get_comments_by_post_id_return_success_but_empty(
     mock_session: AsyncSession,
     post_id: UUID,
 ):
-    users_repository = AsyncMock()
-
     posts_repository = AsyncMock()
 
-    comments_repository = CommentsRepository(
-        mock_session, posts_repository, users_repository
-    )
+    comments_repository = CommentsRepository(mock_session, posts_repository)
 
     with patch.object(
         CommentsRepository, "get_comments_by_post_id", new_callable=AsyncMock
