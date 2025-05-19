@@ -3,6 +3,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, status
 from blog_api.contrib.errors import (
     DatabaseError,
     GenericError,
+    NoResultFound,
     UnableCreateEntity,
 )
 from blog_api.dependencies.auth import get_current_user
@@ -31,6 +32,10 @@ async def create_comment(
         comment_id = await comment_repository.create_comment(model)
 
         return CommentCreatedSchema(id=comment_id)
+    except NoResultFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=e.message
+        )
     except (DatabaseError, UnableCreateEntity) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
