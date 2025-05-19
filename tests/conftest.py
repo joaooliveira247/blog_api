@@ -1,15 +1,18 @@
 from datetime import datetime
 from typing import AsyncGenerator
-from pytest import fixture
-from uuid import UUID, uuid4
 from unittest.mock import AsyncMock
-from httpx import AsyncClient, ASGITransport
+from uuid import UUID, uuid4
+
+from faker import Faker
+from httpx import ASGITransport, AsyncClient
+from pytest import fixture
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from blog_api.commands.app import app
 from blog_api.core.security import gen_hash
 from blog_api.models.comments import CommentModel
-from blog_api.models.users import UserModel
 from blog_api.models.posts import PostModel
+from blog_api.models.users import UserModel
 from blog_api.schemas.comments import CommentOut
 from blog_api.schemas.posts import PostOut
 from blog_api.schemas.users import UserOut
@@ -17,13 +20,12 @@ from tests.factories import (
     comment_data,
     many_comments_data,
     many_posts_data,
+    many_users_data,
     single_comment_update,
     single_post_data,
     single_user_data,
-    many_users_data,
     update_post_data,
 )
-from faker import Faker
 
 fake: Faker = Faker()
 
@@ -68,7 +70,9 @@ def comment_id() -> UUID:
 
 @fixture
 def mock_user(hashed_password: str) -> UserModel:
-    return UserModel(**single_user_data(), password=hashed_password, role="user")
+    return UserModel(
+        **single_user_data(), password=hashed_password, role="user"
+    )
 
 
 @fixture
@@ -78,7 +82,9 @@ def mock_post(user_id: UUID) -> PostModel:
 
 @fixture
 def mock_user_inserted(hashed_password: str, user_id: UUID) -> UserModel:
-    return UserModel(**single_user_data(), password=hashed_password, id=user_id)
+    return UserModel(
+        **single_user_data(), password=hashed_password, id=user_id
+    )
 
 
 @fixture
@@ -146,7 +152,8 @@ def mock_comments_inserted_same_author(
 ) -> list[CommentOut]:
     return [
         CommentOut(
-            **comment.model_dump(exclude="author"), author=mock_user_inserted.username
+            **comment.model_dump(exclude="author"),
+            author=mock_user_inserted.username,
         )
         for comment in mock_comments_inserted
     ]
@@ -201,3 +208,8 @@ def user_agent() -> str:
 @fixture
 def posts_url() -> str:
     return "/posts"
+
+
+@fixture
+def comments_url() -> str:
+    return "/comments"
