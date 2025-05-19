@@ -30,7 +30,7 @@ class CommentsRepository(BaseRepository):
         super().__init__(db)
         self.post_repository = post_repository
 
-    async def create_comment(self, comment: CommentModel) -> None:
+    async def create_comment(self, comment: CommentModel) -> UUID:
         post: PostOut | None = await self.post_repository.get_post_by_id(
             comment.post_id
         )
@@ -42,6 +42,7 @@ class CommentsRepository(BaseRepository):
             self.db.add(comment)
             await self.db.flush()
             await self.db.commit()
+            return comment.id
         except OperationalError:
             await self.db.rollback()
             raise DatabaseError
@@ -146,7 +147,9 @@ class CommentsRepository(BaseRepository):
 
     async def get_comments_by_post_id(self, post_id: UUID) -> list[CommentOut]:
         async with self.db as session:
-            post: PostModel | None = await self.post_repository.get_post_by_id(post_id)
+            post: PostModel | None = await self.post_repository.get_post_by_id(
+                post_id
+            )
 
             if post is None:
                 raise NoResultFound("post_id")
