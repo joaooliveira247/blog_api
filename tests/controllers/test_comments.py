@@ -7,6 +7,7 @@ from httpx import AsyncClient
 from blog_api.commands.app import app
 from blog_api.contrib.errors import (
     DatabaseError,
+    GenericError,
     NoResultFound,
     UnableCreateEntity,
 )
@@ -159,6 +160,43 @@ async def test_create_comment_raise_500_unable_create_entity_error(
         assert result.json() == {
             "detail": "Unable Create Entity: Field value already exists"
         }
+
+        comment_mock.assert_awaited_once()
+
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_create_comment_raise_500_generic_error(
+    client: AsyncClient,
+    comments_url,
+    user_agent,
+    mock_comment_inserted,
+    mock_user_out_inserted,
+    mock_user,
+):
+    jwt = gen_jwt(360, mock_user)
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.object(
+        CommentsRepository,
+        "create_comment",
+        AsyncMock(side_effect=GenericError),
+    ) as comment_mock:
+        result = await client.post(
+            f"{comments_url}/",
+            json={
+                "content": mock_comment_inserted.content,
+                "post_id": str(mock_comment_inserted.id),
+            },
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
+        )
+
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert result.json() == {"detail": "Generic Error"}
 
         comment_mock.assert_awaited_once()
 
