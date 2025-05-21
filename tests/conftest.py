@@ -165,8 +165,9 @@ def mock_comments_inserted_same_post(
 ) -> list[CommentOut]:
     return [
         CommentOut(
-            **comment.model_dump(exclude="post_title"),
+            **comment.model_dump(exclude={"post_title", "post_id"}),
             post_title=mock_post_inserted.title,
+            post_id=mock_post_inserted.id,
         )
         for comment in mock_comments_inserted
     ]
