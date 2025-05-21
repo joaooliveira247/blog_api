@@ -11,6 +11,7 @@ from blog_api.contrib.errors import (
     NoResultFound,
     UnableCreateEntity,
 )
+from blog_api.core.cache import Cache
 from blog_api.core.token import gen_jwt
 from blog_api.dependencies.auth import get_current_user
 from blog_api.repositories.comments import CommentsRepository
@@ -201,3 +202,34 @@ async def test_create_comment_raise_500_generic_error(
         comment_mock.assert_awaited_once()
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_get_comments_by_post_id_success(
+    client: AsyncClient,
+    comments_url,
+    user_agent,
+    mock_comments_inserted_same_post,
+):
+    post_id = mock_comments_inserted_same_post[0].post_id
+
+    with (
+        patch.object(
+            CommentsRepository,
+            "get_comments_by_post_id",
+            AsyncMock(return_value=mock_comments_inserted_same_post),
+        ) as mock_comments,
+        patch.multiple(
+            Cache,
+            get=AsyncMock(return_value=None),
+            add=AsyncMock(return_value=None),
+        ),
+    ):
+        result = await client.get(
+            f"{comments_url}/{post_id}", headers={"User-Agent": user_agent}
+        )
+
+        assert result.status_code == status.HTTP_200_OK
+        assert len(result.json()["items"]) > 1
+
+        mock_comments.assert_awaited_once()
