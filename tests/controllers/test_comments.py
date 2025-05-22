@@ -354,7 +354,7 @@ async def test_get_comments_by_post_id_raise_500_cache_error_when_add(
             f"{comments_url}/{post_id}", headers={"User-Agent": user_agent}
         )
 
-        assert result.status_code == status.HTTP_404_NOT_FOUND
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert result.json() == {"detail": "Cache Error"}
 
         mock_comments.assert_awaited_once()
