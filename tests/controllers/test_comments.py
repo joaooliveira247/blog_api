@@ -228,7 +228,8 @@ async def test_get_comments_by_post_id_success(
         ),
     ):
         result = await client.get(
-            f"{comments_url}/{post_id}", headers={"User-Agent": user_agent}
+            f"{comments_url}/post/{post_id}",
+            headers={"User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_200_OK
@@ -250,7 +251,8 @@ async def test_get_comments_by_post_id_success_from_cache(
         Cache, "get", AsyncMock(return_value=mock_comments_inserted_same_post)
     ) as mock_comments:
         result = await client.get(
-            f"{comments_url}/{post_id}", headers={"User-Agent": user_agent}
+            f"{comments_url}/post/{post_id}",
+            headers={"User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_200_OK
