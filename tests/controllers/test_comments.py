@@ -278,7 +278,8 @@ async def test_get_comments_by_post_id_raise_404_no_result_found(
         ),
     ):
         result = await client.get(
-            f"{comments_url}/{post_id}", headers={"User-Agent": user_agent}
+            f"{comments_url}/post/{post_id}",
+            headers={"User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_404_NOT_FOUND
@@ -304,7 +305,8 @@ async def test_get_comments_by_post_id_raise_500_generic_error(
         ),
     ):
         result = await client.get(
-            f"{comments_url}/{post_id}", headers={"User-Agent": user_agent}
+            f"{comments_url}/post/{post_id}",
+            headers={"User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -323,7 +325,8 @@ async def test_get_comments_by_post_id_raise_500_generic_error_from_cache(
         AsyncMock(side_effect=GenericError),
     ) as mock_comments:
         result = await client.get(
-            f"{comments_url}/{post_id}", headers={"User-Agent": user_agent}
+            f"{comments_url}/post/{post_id}",
+            headers={"User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -353,7 +356,8 @@ async def test_get_comments_by_post_id_raise_500_cache_error_when_add(
         ),
     ):
         result = await client.get(
-            f"{comments_url}/{post_id}", headers={"User-Agent": user_agent}
+            f"{comments_url}/post/{post_id}",
+            headers={"User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -383,7 +387,8 @@ async def test_get_comments_by_post_id_raise_500_encoding_error_when_add(
         ),
     ):
         result = await client.get(
-            f"{comments_url}/{post_id}", headers={"User-Agent": user_agent}
+            f"{comments_url}/post/{post_id}",
+            headers={"User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -415,7 +420,8 @@ async def test_get_comments_by_post_id_raise_500_generic_error_when_add(
         ),
     ):
         result = await client.get(
-            f"{comments_url}/{post_id}", headers={"User-Agent": user_agent}
+            f"{comments_url}/post/{post_id}",
+            headers={"User-Agent": user_agent},
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
