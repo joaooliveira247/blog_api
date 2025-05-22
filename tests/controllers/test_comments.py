@@ -284,14 +284,14 @@ async def test_get_comments_by_post_id_raise_404_no_result_found(
 
 
 @pytest.mark.asyncio
-async def test_get_comments_by_post_id_raise_500_database_error(
+async def test_get_comments_by_post_id_raise_500_generic_error(
     client: AsyncClient, comments_url, user_agent, post_id
 ):
     with (
         patch.object(
             CommentsRepository,
             "get_comments_by_post_id",
-            AsyncMock(side_effect=DatabaseError),
+            AsyncMock(side_effect=GenericError),
         ) as mock_comments,
         patch.multiple(
             Cache,
@@ -304,6 +304,6 @@ async def test_get_comments_by_post_id_raise_500_database_error(
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert result.json() == {"detail": "Database integrity error"}
+        assert result.json() == {"detail": "Generic Error"}
 
         mock_comments.assert_awaited_once()
