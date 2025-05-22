@@ -255,3 +255,29 @@ async def test_get_comments_by_post_id_success_from_cache(
         assert len(result.json()["items"]) > 1
 
         mock_comments.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_get_comments_by_post_id_raise_404_no_result_found(
+    client: AsyncClient, comments_url, user_agent, post_id
+):
+    with (
+        patch.object(
+            CommentsRepository,
+            "get_comments_by_post_id",
+            AsyncMock(side_effect=NoResultFound("post_id")),
+        ) as mock_comments,
+        patch.multiple(
+            Cache,
+            get=AsyncMock(return_value=None),
+            add=AsyncMock(return_value=None),
+        ),
+    ):
+        result = await client.get(
+            f"{comments_url}/{post_id}", headers={"User-Agent": user_agent}
+        )
+
+        assert result.status_code == status.HTTP_404_NOT_FOUND
+        assert result.json() == {"detail": "Result not found with post_id"}
+
+        mock_comments.assert_awaited_once()
