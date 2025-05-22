@@ -8,6 +8,7 @@ from blog_api.commands.app import app
 from blog_api.contrib.errors import (
     CacheError,
     DatabaseError,
+    EncodingError,
     GenericError,
     NoResultFound,
     UnableCreateEntity,
@@ -355,5 +356,37 @@ async def test_get_comments_by_post_id_raise_500_cache_error_when_add(
 
         assert result.status_code == status.HTTP_404_NOT_FOUND
         assert result.json() == {"detail": "Cache Error"}
+
+        mock_comments.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_get_comments_by_post_id_raise_500_encoding_error_when_add(
+    client: AsyncClient,
+    comments_url,
+    user_agent,
+    post_id,
+    mock_comments_inserted_same_post,
+):
+    with (
+        patch.object(
+            CommentsRepository,
+            "get_comments_by_post_id",
+            AsyncMock(return_value=mock_comments_inserted_same_post),
+        ) as mock_comments,
+        patch.multiple(
+            Cache,
+            get=AsyncMock(return_value=None),
+            add=AsyncMock(side_effect=EncodingError),
+        ),
+    ):
+        result = await client.get(
+            f"{comments_url}/{post_id}", headers={"User-Agent": user_agent}
+        )
+
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert result.json() == {
+            "detail": "Error when try encoding one object"
+        }
 
         mock_comments.assert_awaited_once()
