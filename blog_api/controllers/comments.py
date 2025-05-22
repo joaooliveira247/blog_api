@@ -55,7 +55,7 @@ async def create_comment(
         )
 
 
-@comments_controller.get("/{post_id}", status_code=status.HTTP_200_OK)
+@comments_controller.get("/post/{post_id}", status_code=status.HTTP_200_OK)
 async def get_comments_by_post_id(
     db: DatabaseDependency,  # type: ignore
     cache_conn: CacheDependency,  # type: ignore
