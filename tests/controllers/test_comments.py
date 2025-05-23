@@ -428,3 +428,35 @@ async def test_get_comments_by_post_id_raise_500_generic_error_when_add(
         assert result.json() == {"detail": "Generic Error"}
 
         mock_comments.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_get_comments_by_user_id_success(
+    client: AsyncClient,
+    comments_url,
+    user_agent,
+    mock_comments_inserted_same_author,
+):
+    author_id = mock_comments_inserted_same_author[0].author_id
+
+    with (
+        patch.object(
+            CommentsRepository,
+            "get_comments_by_user_id",
+            AsyncMock(return_value=mock_comments_inserted_same_author),
+        ) as mock_comments,
+        patch.multiple(
+            Cache,
+            get=AsyncMock(return_value=None),
+            add=AsyncMock(return_value=None),
+        ),
+    ):
+        result = await client.get(
+            f"{comments_url}/user/{author_id}",
+            headers={"User-Agent": user_agent},
+        )
+
+        assert result.status_code == status.HTTP_200_OK
+        assert len(result.json()["items"]) > 1
+
+        mock_comments.assert_awaited_once()
