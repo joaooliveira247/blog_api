@@ -92,3 +92,40 @@ async def get_comments_by_post_id(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
         )
+
+
+@comments_controller.get("/user/{user_id}", status_code=status.HTTP_200_OK)
+async def get_comments_by_user_id(
+    db: DatabaseDependency,  # type: ignore
+    cache_conn: CacheDependency,  # type: ignore
+    user_id: UUID,
+) -> Page[CommentOut]:
+    post_repository = PostsRepository(db)
+    comment_repository = CommentsRepository(db, post_repository)
+    cache = Cache(cache_conn)
+
+    try:
+        if comments := await cache.get(f"comment:{user_id}", CommentOut):
+            return paginate(comments)
+
+        comments = await comment_repository.get_comments_by_user_id(user_id)
+
+        await cache.add(f"comment:{user_id}", comments)
+
+        return paginate(comments)
+    except NoResultFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=e.message
+        )
+    except DatabaseError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+    except (CacheError, EncodingError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+    except GenericError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
