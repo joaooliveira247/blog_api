@@ -670,3 +670,34 @@ async def test_get_comments_by_user_id_raise_500_encoding_error_when_add(
         }
 
         mock_comments.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_get_comments_by_user_id_raise_500_generic_error_when_add(
+    client: AsyncClient,
+    comments_url,
+    user_agent,
+    user_id,
+    mock_comments_inserted_same_author,
+):
+    with (
+        patch.object(
+            CommentsRepository,
+            "get_comments_by_user_id",
+            AsyncMock(return_value=mock_comments_inserted_same_author),
+        ) as mock_comments,
+        patch.multiple(
+            Cache,
+            get=AsyncMock(return_value=None),
+            add=AsyncMock(side_effect=GenericError),
+        ),
+    ):
+        result = await client.get(
+            f"{comments_url}/user/{user_id}",
+            headers={"User-Agent": user_agent},
+        )
+
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert result.json() == {"detail": "Generic Error"}
+
+        mock_comments.assert_awaited_once()
