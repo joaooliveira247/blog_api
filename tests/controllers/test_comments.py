@@ -460,3 +460,28 @@ async def test_get_comments_by_user_id_success(
         assert len(result.json()["items"]) > 1
 
         mock_comments.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_get_comments_by_user_id_success_from_cache(
+    client: AsyncClient,
+    comments_url,
+    user_agent,
+    mock_comments_inserted_same_author,
+):
+    author_id = mock_comments_inserted_same_author[0].author_id
+
+    with patch.object(
+        Cache,
+        "get",
+        AsyncMock(return_value=mock_comments_inserted_same_author),
+    ) as mock_comments:
+        result = await client.get(
+            f"{comments_url}/user/{author_id}",
+            headers={"User-Agent": user_agent},
+        )
+
+        assert result.status_code == status.HTTP_200_OK
+        assert len(result.json()["items"]) > 1
+
+        mock_comments.assert_awaited_once()
