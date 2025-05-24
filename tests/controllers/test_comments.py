@@ -539,3 +539,30 @@ async def test_get_comments_by_user_id_raise_500_database_error(
         assert result.json() == {"detail": "Database integrity error"}
 
         mock_comments.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_get_comments_by_user_id_raise_500_generic_error(
+    client: AsyncClient, comments_url, user_agent, post_id
+):
+    with (
+        patch.object(
+            CommentsRepository,
+            "get_comments_by_user_id",
+            AsyncMock(side_effect=GenericError),
+        ) as mock_comments,
+        patch.multiple(
+            Cache,
+            get=AsyncMock(return_value=None),
+            add=AsyncMock(return_value=None),
+        ),
+    ):
+        result = await client.get(
+            f"{comments_url}/user/{post_id}",
+            headers={"User-Agent": user_agent},
+        )
+
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert result.json() == {"detail": "Generic Error"}
+
+        mock_comments.assert_awaited_once()
