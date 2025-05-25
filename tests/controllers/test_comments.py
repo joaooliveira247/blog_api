@@ -736,3 +736,35 @@ async def test_update_comment_success(
         assert result.text == ""
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_update_comment_raise_404_not_found(
+    client: AsyncClient,
+    comments_url: str,
+    user_agent: str,
+    mock_user,
+    mock_comment_inserted,
+    mock_user_out_inserted,
+):
+    jwt = gen_jwt(360, mock_user)
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.object(
+        CommentsRepository,
+        "get_comment_by_id",
+        AsyncMock(return_value=None),
+    ):
+        result = await client.put(
+            f"{comments_url}/{mock_comment_inserted.id}",
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
+            json={"content": "update my comment"},
+        )
+
+        assert result.status_code == status.HTTP_404_NOT_FOUND
+        assert result.json() == {"detail": "Comment not found."}
+
+    app.dependency_overrides.clear()
