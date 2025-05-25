@@ -12,6 +12,7 @@ from blog_api.contrib.errors import (
     GenericError,
     NoResultFound,
     UnableCreateEntity,
+    UnableUpdateEntity,
 )
 from blog_api.core.cache import Cache
 from blog_api.core.token import gen_jwt
@@ -870,5 +871,40 @@ async def test_update_comment_raise_500_database_error(
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert result.json() == {"detail": "Database integrity error"}
+
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_update_comment_raise_500_unable_update_entity(
+    client: AsyncClient,
+    comments_url: str,
+    user_agent: str,
+    mock_user,
+    mock_comment_inserted,
+    mock_user_out_inserted,
+):
+    mock_user.id = mock_comment_inserted.author_id
+    mock_user_out_inserted.id = mock_comment_inserted.author_id
+
+    jwt = gen_jwt(360, mock_user)
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.multiple(
+        CommentsRepository,
+        get_comment_by_id=AsyncMock(return_value=mock_comment_inserted),
+        update_comment=AsyncMock(side_effect=UnableUpdateEntity),
+    ):
+        result = await client.put(
+            f"{comments_url}/{mock_comment_inserted.id}",
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
+            json={"content": "update my comment"},
+        )
+
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert result.json() == {"detail": "Unable Update Entity"}
 
     app.dependency_overrides.clear()
