@@ -18,3 +18,6 @@ class CommentOut(CommentBase, OutMixin):
 
 class CommentIn(CommentBase):
     post_id: UUID = Field(..., description="Post id")
+
+
+class CommentUpdate(CommentBase): ...
