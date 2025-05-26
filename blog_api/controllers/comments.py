@@ -10,6 +10,7 @@ from blog_api.contrib.errors import (
     GenericError,
     NoResultFound,
     UnableCreateEntity,
+    UnableDeleteEntity,
     UnableUpdateEntity,
 )
 from blog_api.core.cache import Cache
@@ -164,6 +165,42 @@ async def update_comment(
             status_code=status.HTTP_404_NOT_FOUND, detail=e.message
         )
     except (DatabaseError, UnableUpdateEntity) as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+    except GenericError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+
+
+@comments_controller.delete(
+    "/{comment_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+async def delete_comment(
+    db: DatabaseDependency,  # type: ignore
+    comment_id: UUID,
+    user: UserOut = Depends(get_current_user),
+) -> None:
+    post_repository = PostsRepository(db)
+    comment_repository = CommentsRepository(db, post_repository)
+
+    comment = await comment_repository.get_comment_by_id(comment_id)
+
+    if comment is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found."
+        )
+
+    if comment.author_id != user.id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="This comment don't belongs current user",
+        )
+
+    try:
+        await comment_repository.delete_comment(comment_id)
+    except (DatabaseError, UnableDeleteEntity) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
         )
