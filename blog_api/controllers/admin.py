@@ -1,20 +1,12 @@
 from uuid import UUID
-from fastapi import APIRouter, Body, HTTPException, Depends, Query, status
+
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi_pagination import Page, paginate
 from pydantic import EmailStr
 
-from blog_api.core.cache import Cache
-from blog_api.models.users import UserModel
-from blog_api.repositories.posts import PostsRepository
-from blog_api.repositories.users import UsersRepository
-from blog_api.dependencies.dependencies import CacheDependency, DatabaseDependency
-from blog_api.dependencies.auth import get_current_user
-from blog_api.schemas.posts import PostUpdate
-from blog_api.schemas.response import UpdateSuccess
-from blog_api.schemas.users import RoleUpdate, UserOut
 from blog_api.contrib.errors import (
     CacheError,
     DatabaseError,
@@ -24,7 +16,19 @@ from blog_api.contrib.errors import (
     UnableDeleteEntity,
     UnableUpdateEntity,
 )
-
+from blog_api.core.cache import Cache
+from blog_api.dependencies.auth import get_current_user
+from blog_api.dependencies.dependencies import (
+    CacheDependency,
+    DatabaseDependency,
+)
+from blog_api.models.users import UserModel
+from blog_api.repositories.comments import CommentsRepository
+from blog_api.repositories.posts import PostsRepository
+from blog_api.repositories.users import UsersRepository
+from blog_api.schemas.posts import PostUpdate
+from blog_api.schemas.response import UpdateSuccess
+from blog_api.schemas.users import RoleUpdate, UserOut
 
 admin_controller = APIRouter(tags=["admin"])
 
@@ -38,7 +42,8 @@ async def get_users(
 ) -> Page[UserOut]:
     if user.role not in ("admin", "dev"):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid permissions"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid permissions",
         )
 
     repository = UsersRepository(db)
@@ -50,7 +55,9 @@ async def get_users(
             if cache_user := await cache.get(f"user:{email}", UserOut):
                 return paginate([cache_user])
 
-            db_user = await repository.get_user_by_query(UserModel(email=email))
+            db_user = await repository.get_user_by_query(
+                UserModel(email=email)
+            )
 
             return paginate([UserOut(**db_user.__dict__)])
 
@@ -90,7 +97,8 @@ async def get_user_by_id(
 ) -> UserOut:
     if user.role not in ("admin", "dev"):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid permissions"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid permissions",
         )
 
     repository = UsersRepository(db)
@@ -125,7 +133,9 @@ async def get_user_by_id(
         )
 
 
-@admin_controller.patch("/users/{user_id}/role", status_code=status.HTTP_200_OK)
+@admin_controller.patch(
+    "/users/{user_id}/role", status_code=status.HTTP_200_OK
+)
 async def update_user_role(
     db: DatabaseDependency,  # type:ignore
     user_id: UUID,
@@ -134,7 +144,8 @@ async def update_user_role(
 ) -> UpdateSuccess:
     if user.role not in ("admin"):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid permissions"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid permissions",
         )
 
     if user_id == user.id:
@@ -151,7 +162,9 @@ async def update_user_role(
         return UpdateSuccess(message="User role updated successfully")
 
     except NoResultFound as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=e.message
+        )
     except (DatabaseError, UnableUpdateEntity) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
@@ -162,7 +175,9 @@ async def update_user_role(
         )
 
 
-@admin_controller.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@admin_controller.delete(
+    "/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT
+)
 async def delete_user(
     db: DatabaseDependency,  # type:ignore
     user_id: UUID,
@@ -170,7 +185,8 @@ async def delete_user(
 ) -> None:
     if user.role not in ("admin", "dev"):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid permissions"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid permissions",
         )
 
     repository = UsersRepository(db)
@@ -187,7 +203,9 @@ async def delete_user(
         )
 
 
-@admin_controller.put("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
+@admin_controller.put(
+    "/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT
+)
 async def update_post(
     db: DatabaseDependency,  # type: ignore
     post_id: UUID,
@@ -196,7 +214,8 @@ async def update_post(
 ) -> None:
     if user.role not in ("admin"):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid permissions"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid permissions",
         )
 
     repository = PostsRepository(db)
@@ -221,7 +240,9 @@ async def update_post(
         )
 
 
-@admin_controller.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
+@admin_controller.delete(
+    "/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT
+)
 async def delete_post(
     db: DatabaseDependency,  # type: ignore
     post_id: UUID,
@@ -229,7 +250,8 @@ async def delete_post(
 ) -> None:
     if user.role not in ("admin",):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid permissions"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid permissions",
         )
 
     repository = PostsRepository(db)
@@ -254,14 +276,57 @@ async def delete_post(
         )
 
 
-@admin_controller.get("/docs", status_code=status.HTTP_200_OK, include_in_schema=False)
-async def get_swagger_ui(user: UserOut = Depends(get_current_user)) -> HTMLResponse:
-    if user.role not in ("admin", "dev"):
+@admin_controller.delete(
+    "/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+async def delete_comment(
+    db: DatabaseDependency,  # type: ignore
+    comment_id: UUID,
+    user: UserOut = Depends(get_current_user),
+) -> None:
+    if user.role not in ("admin",):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid permissions"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid permissions",
         )
 
-    return get_swagger_ui_html(openapi_url="/admin/openapi.json", title="Admin Docs")
+    post_repository = PostsRepository(db)
+    comment_repository = CommentsRepository(db, post_repository)
+
+    comment = await comment_repository.get_comment_by_id(comment_id)
+
+    if comment is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found."
+        )
+
+    try:
+        await comment_repository.delete_comment(comment_id)
+    except (DatabaseError, UnableDeleteEntity) as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+    except GenericError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
+        )
+
+
+@admin_controller.get(
+    "/docs", status_code=status.HTTP_200_OK, include_in_schema=False
+)
+async def get_swagger_ui(
+    user: UserOut = Depends(get_current_user),
+) -> HTMLResponse:
+    if user.role not in ("admin", "dev"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid permissions",
+        )
+
+    return get_swagger_ui_html(
+        openapi_url="/admin/openapi.json", title="Admin Docs"
+    )
 
 
 @admin_controller.get(
@@ -272,7 +337,8 @@ async def get_open_api_endpoint(
 ) -> HTMLResponse:
     if user.role not in ("admin", "dev"):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid permissions"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid permissions",
         )
 
     from blog_api.commands.app import app
