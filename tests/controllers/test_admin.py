@@ -1,5 +1,7 @@
 from unittest.mock import AsyncMock, patch
+
 import pytest
+from fastapi import status
 from httpx import AsyncClient
 
 from blog_api.commands.app import app
@@ -15,10 +17,9 @@ from blog_api.contrib.errors import (
 from blog_api.core.cache import Cache
 from blog_api.core.token import gen_jwt
 from blog_api.dependencies.auth import get_current_user
+from blog_api.repositories.comments import CommentsRepository
 from blog_api.repositories.posts import PostsRepository
 from blog_api.repositories.users import UsersRepository
-from fastapi import status
-
 from blog_api.schemas.users import UserOut
 
 
@@ -45,12 +46,17 @@ async def test_get_users_return_success(
             AsyncMock(return_value=mock_users_out_inserted),
         ) as user_mock,
         patch.multiple(
-            Cache, get=AsyncMock(return_value=None), add=AsyncMock(return_value=None)
+            Cache,
+            get=AsyncMock(return_value=None),
+            add=AsyncMock(return_value=None),
         ),
     ):
         result = await client.get(
             f"{admin_url}/users",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_200_OK
@@ -83,12 +89,17 @@ async def test_get_user_by_email_return_success(
             AsyncMock(return_value=mock_user_out_inserted),
         ) as user_mock,
         patch.multiple(
-            Cache, get=AsyncMock(return_value=None), add=AsyncMock(return_value=None)
+            Cache,
+            get=AsyncMock(return_value=None),
+            add=AsyncMock(return_value=None),
         ),
     ):
         result = await client.get(
             f"{admin_url}/users?email={mock_user_out_inserted.email}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_200_OK
@@ -121,7 +132,10 @@ async def test_get_user_by_email_from_cache_return_success(
     ):
         result = await client.get(
             f"{admin_url}/users?email={mock_user_out_inserted.email}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_200_OK
@@ -183,7 +197,10 @@ async def test_get_users_return_success_from_cache(
     ):
         result = await client.get(
             f"{admin_url}/users",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_200_OK
@@ -215,7 +232,10 @@ async def test_get_users_raise_500_database_error(
     ):
         result = await client.get(
             f"{admin_url}/users",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -276,7 +296,10 @@ async def test_get_users_raise_500_generic_error(
     ):
         result = await client.get(
             f"{admin_url}/users",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -310,7 +333,10 @@ async def test_get_users_raise_500_cache_error_when_get_from_cache(
     ):
         result = await client.get(
             f"{admin_url}/users",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -351,7 +377,10 @@ async def test_get_users_raise_500_cache_error_when_add_from_cache(
     ):
         result = await client.get(
             f"{admin_url}/users",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -392,11 +421,16 @@ async def test_get_users_raise_500_encoding_error_when_add_from_cache(
     ):
         result = await client.get(
             f"{admin_url}/users",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert result.json() == {"detail": "Error when try encoding one object"}
+        assert result.json() == {
+            "detail": "Error when try encoding one object"
+        }
 
         user_mock.assert_awaited_once()
 
@@ -433,7 +467,10 @@ async def test_get_users_raise_500_generic_error_when_add_from_cache(
     ):
         result = await client.get(
             f"{admin_url}/users",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -473,7 +510,10 @@ async def test_get_user_by_id_success(
     ):
         result = await client.get(
             f"{admin_url}/users/{mock_user_out_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_200_OK
@@ -506,7 +546,10 @@ async def test_get_user_by_id_success_from_cache(
     ) as user_mock:
         result = await client.get(
             f"{admin_url}/users/{mock_user_out_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_200_OK
@@ -568,7 +611,10 @@ async def test_get_user_by_id_raise_500_cache_error(
     ) as user_mock:
         result = await client.get(
             f"{admin_url}/users/{mock_user_out_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -601,11 +647,16 @@ async def test_get_user_by_id_raise_500_encoding_error(
     ) as user_mock:
         result = await client.get(
             f"{admin_url}/users/{mock_user_out_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert result.json() == {"detail": "Error when try encoding one object"}
+        assert result.json() == {
+            "detail": "Error when try encoding one object"
+        }
 
         user_mock.assert_awaited_once()
 
@@ -641,7 +692,10 @@ async def test_get_user_by_id_raise_500_database_error(
     ):
         result = await client.get(
             f"{admin_url}/users/{mock_user_out_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -681,7 +735,10 @@ async def test_get_user_by_id_raise_500_generic_error(
     ):
         result = await client.get(
             f"{admin_url}/users/{mock_user_out_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -721,7 +778,10 @@ async def test_get_user_by_id_raise_500_cache_error_when_add_cache(
     ):
         result = await client.get(
             f"{admin_url}/users/{mock_user_out_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -761,7 +821,10 @@ async def test_get_user_by_id_raise_500_generic_error_when_add_cache(
     ):
         result = await client.get(
             f"{admin_url}/users/{mock_user_out_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -774,7 +837,11 @@ async def test_get_user_by_id_raise_500_generic_error_when_add_cache(
 
 @pytest.mark.asyncio
 async def test_delete_user_return_success(
-    client: AsyncClient, mock_user, admin_url, user_agent, mock_user_out_inserted
+    client: AsyncClient,
+    mock_user,
+    admin_url,
+    user_agent,
+    mock_user_out_inserted,
 ):
     mock_user.role = "admin"
     mock_user_out_inserted.role = "admin"
@@ -788,7 +855,10 @@ async def test_delete_user_return_success(
     ) as mock_user:
         result = await client.delete(
             f"{admin_url}/users/{mock_user_out_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_204_NO_CONTENT
@@ -801,7 +871,11 @@ async def test_delete_user_return_success(
 
 @pytest.mark.asyncio
 async def test_delete_user_raise_401_invalid_permission(
-    client: AsyncClient, mock_user, admin_url, user_agent, mock_user_out_inserted
+    client: AsyncClient,
+    mock_user,
+    admin_url,
+    user_agent,
+    mock_user_out_inserted,
 ):
     mock_user.role = "user"
     mock_user_out_inserted.role = "user"
@@ -823,7 +897,11 @@ async def test_delete_user_raise_401_invalid_permission(
 
 @pytest.mark.asyncio
 async def test_delete_user_raise_500_database_error(
-    client: AsyncClient, mock_user, admin_url, user_agent, mock_user_out_inserted
+    client: AsyncClient,
+    mock_user,
+    admin_url,
+    user_agent,
+    mock_user_out_inserted,
 ):
     mock_user.role = "admin"
     mock_user_out_inserted.role = "admin"
@@ -837,7 +915,10 @@ async def test_delete_user_raise_500_database_error(
     ) as mock_user:
         result = await client.delete(
             f"{admin_url}/users/{mock_user_out_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -850,7 +931,11 @@ async def test_delete_user_raise_500_database_error(
 
 @pytest.mark.asyncio
 async def test_delete_user_raise_500_unable_delete_entity_error(
-    client: AsyncClient, mock_user, admin_url, user_agent, mock_user_out_inserted
+    client: AsyncClient,
+    mock_user,
+    admin_url,
+    user_agent,
+    mock_user_out_inserted,
 ):
     mock_user.role = "admin"
     mock_user_out_inserted.role = "admin"
@@ -860,11 +945,16 @@ async def test_delete_user_raise_500_unable_delete_entity_error(
     app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
 
     with patch.object(
-        UsersRepository, "delete_user", AsyncMock(side_effect=UnableDeleteEntity)
+        UsersRepository,
+        "delete_user",
+        AsyncMock(side_effect=UnableDeleteEntity),
     ) as mock_user:
         result = await client.delete(
             f"{admin_url}/users/{mock_user_out_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -877,7 +967,11 @@ async def test_delete_user_raise_500_unable_delete_entity_error(
 
 @pytest.mark.asyncio
 async def test_delete_user_raise_500_generic_error(
-    client: AsyncClient, mock_user, admin_url, user_agent, mock_user_out_inserted
+    client: AsyncClient,
+    mock_user,
+    admin_url,
+    user_agent,
+    mock_user_out_inserted,
 ):
     mock_user.role = "admin"
     mock_user_out_inserted.role = "admin"
@@ -891,7 +985,10 @@ async def test_delete_user_raise_500_generic_error(
     ) as mock_user:
         result = await client.delete(
             f"{admin_url}/users/{mock_user_out_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -925,7 +1022,10 @@ async def test_update_user_role_success(
     ) as mock_user:
         result = await client.patch(
             f"{admin_url}/users/{user_update.id}/role",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
             json={"role": "dev"},
         )
 
@@ -1019,7 +1119,9 @@ async def test_update_user_role_raise_403_change_own_role(
     )
 
     assert result.status_code == status.HTTP_403_FORBIDDEN
-    assert result.json() == {"detail": "you are not allowed to change your own role"}
+    assert result.json() == {
+        "detail": "you are not allowed to change your own role"
+    }
 
     app.dependency_overrides.clear()
 
@@ -1040,11 +1142,16 @@ async def test_update_user_role_raise_404_no_result_found(
     app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
 
     with patch.object(
-        UsersRepository, "update_user_role", AsyncMock(side_effect=NoResultFound)
+        UsersRepository,
+        "update_user_role",
+        AsyncMock(side_effect=NoResultFound),
     ) as mock_user:
         result = await client.patch(
             f"{admin_url}/users/cb972123-113c-435d-9236-93d842489682/role",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
             json={"role": "dev"},
         )
 
@@ -1072,11 +1179,16 @@ async def test_update_user_role_raise_500_database_error(
     app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
 
     with patch.object(
-        UsersRepository, "update_user_role", AsyncMock(side_effect=DatabaseError)
+        UsersRepository,
+        "update_user_role",
+        AsyncMock(side_effect=DatabaseError),
     ) as mock_user:
         result = await client.patch(
             f"{admin_url}/users/cb972123-113c-435d-9236-93d842489682/role",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
             json={"role": "dev"},
         )
 
@@ -1104,11 +1216,16 @@ async def test_update_user_role_raise_500_unable_update_entity(
     app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
 
     with patch.object(
-        UsersRepository, "update_user_role", AsyncMock(side_effect=UnableUpdateEntity)
+        UsersRepository,
+        "update_user_role",
+        AsyncMock(side_effect=UnableUpdateEntity),
     ) as mock_user:
         result = await client.patch(
             f"{admin_url}/users/cb972123-113c-435d-9236-93d842489682/role",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
             json={"role": "dev"},
         )
 
@@ -1134,11 +1251,16 @@ async def test_update_user_role_raise_500_generic_error(
     app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
 
     with patch.object(
-        UsersRepository, "update_user_role", AsyncMock(side_effect=GenericError)
+        UsersRepository,
+        "update_user_role",
+        AsyncMock(side_effect=GenericError),
     ) as mock_user:
         result = await client.patch(
             f"{admin_url}/users/cb972123-113c-435d-9236-93d842489682/role",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
             json={"role": "dev"},
         )
 
@@ -1331,7 +1453,10 @@ async def test_update_post_success_as_admin(
     ):
         result = await client.put(
             f"{admin_url}/posts/{mock_post_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
             json=mock_update_post,
         )
 
@@ -1393,7 +1518,9 @@ async def test_update_post_raise_422_invalid_body(
     )
 
     assert result.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-    assert result.json()["detail"][0]["msg"] == "Input should be a valid string"
+    assert (
+        result.json()["detail"][0]["msg"] == "Input should be a valid string"
+    )
 
     app.dependency_overrides.clear()
 
@@ -1421,7 +1548,10 @@ async def test_update_post_raise_404_post_not_found(
     ) as mock_post:
         result = await client.put(
             f"{admin_url}/posts/{mock_post_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
             json=mock_update_post,
         )
 
@@ -1456,7 +1586,10 @@ async def test_update_post_raise_500_database_error(
     ):
         result = await client.put(
             f"{admin_url}/posts/{mock_post_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
             json=mock_update_post,
         )
 
@@ -1489,7 +1622,10 @@ async def test_update_post_raise_500_unable_update_entity_error(
     ):
         result = await client.put(
             f"{admin_url}/posts/{mock_post_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
             json=mock_update_post,
         )
 
@@ -1522,7 +1658,10 @@ async def test_update_post_raise_500_generic_error(
     ):
         result = await client.put(
             f"{admin_url}/posts/{mock_post_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
             json=mock_update_post,
         )
 
@@ -1554,7 +1693,10 @@ async def test_delete_post_success_as_admin(
     ):
         result = await client.delete(
             f"{admin_url}/posts/{mock_post_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_204_NO_CONTENT
@@ -1610,7 +1752,10 @@ async def test_delete_post_raise_404_post_not_found(
     ) as mock_post:
         result = await client.put(
             f"{admin_url}/posts/{mock_post_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
             json=mock_update_post,
         )
 
@@ -1644,7 +1789,10 @@ async def test_delete_post_raise_500_database_error(
     ):
         result = await client.delete(
             f"{admin_url}/posts/{mock_post_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -1675,7 +1823,10 @@ async def test_delete_post_raise_500_unable_delete_entity_error(
     ):
         result = await client.delete(
             f"{admin_url}/posts/{mock_post_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -1706,10 +1857,50 @@ async def test_delete_post_raise_500_generic_error(
     ):
         result = await client.delete(
             f"{admin_url}/posts/{mock_post_inserted.id}",
-            headers={"Authorization": f"Bearer {jwt}", "User-Agent": user_agent},
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
         )
 
         assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert result.json() == {"detail": "Generic Error"}
+
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_delete_comment_success(
+    client: AsyncClient,
+    admin_url: str,
+    comments_url: str,
+    user_agent: str,
+    mock_user,
+    mock_comment_inserted,
+    mock_user_out_inserted,
+):
+    mock_user.id = mock_comment_inserted.author_id
+    mock_user.role = "admin"
+    mock_user_out_inserted.id = mock_comment_inserted.author_id
+    mock_user_out_inserted.role = "admin"
+
+    jwt = gen_jwt(360, mock_user)
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.multiple(
+        CommentsRepository,
+        get_comment_by_id=AsyncMock(return_value=mock_comment_inserted),
+        delete_comment=AsyncMock(return_value=None),
+    ):
+        result = await client.delete(
+            f"{admin_url}{comments_url}/{mock_comment_inserted.id}",
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
+        )
+
+        assert result.status_code == status.HTTP_204_NO_CONTENT
+        assert result.text == ""
 
     app.dependency_overrides.clear()
