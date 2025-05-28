@@ -14,5 +14,14 @@ services:
     ports:
       - 5432:5432
 
+  blog_redis_database:
+    image: redis:7.4.2-alpine
+    restart: "no"
+    command: ["redis-server", "--requirepass", "passwd"]
+    networks:
+      - blog_api_network
+    ports:
+      - "6379:6379"
+
 networks:
   blog_api_network:
