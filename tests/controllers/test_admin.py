@@ -1904,3 +1904,35 @@ async def test_delete_comment_success(
         assert result.text == ""
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_delete_comment_raise_401_unauthorized(
+    client: AsyncClient,
+    admin_url: str,
+    comments_url: str,
+    user_agent: str,
+    mock_user,
+    mock_comment_inserted,
+    mock_user_out_inserted,
+):
+    mock_user.id = mock_comment_inserted.author_id
+    mock_user.role = "user"
+    mock_user_out_inserted.id = mock_comment_inserted.author_id
+    mock_user_out_inserted.role = "user"
+
+    jwt = gen_jwt(360, mock_user)
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    result = await client.delete(
+        f"{admin_url}{comments_url}/{mock_comment_inserted.id}",
+        headers={
+            "Authorization": f"Bearer {jwt}",
+            "User-Agent": user_agent,
+        },
+    )
+
+    assert result.status_code == status.HTTP_401_UNAUTHORIZED
+    assert result.json() == {"detail": "invalid permissions"}
+
+    app.dependency_overrides.clear()
