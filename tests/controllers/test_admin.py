@@ -2081,3 +2081,40 @@ async def test_delete_comment_raise_500_unable_delete_entity(
         assert result.json() == {"detail": "Unable Delete Entity"}
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_delete_comment_raise_500_generic_error(
+    client: AsyncClient,
+    admin_url: str,
+    comments_url: str,
+    user_agent: str,
+    mock_user,
+    mock_comment_inserted,
+    mock_user_out_inserted,
+):
+    mock_user.id = mock_comment_inserted.author_id
+    mock_user.role = "admin"
+    mock_user_out_inserted.id = mock_comment_inserted.author_id
+    mock_user_out_inserted.role = "admin"
+
+    jwt = gen_jwt(360, mock_user)
+    app.dependency_overrides[get_current_user] = lambda: mock_user_out_inserted
+
+    with patch.multiple(
+        CommentsRepository,
+        get_comment_by_id=AsyncMock(return_value=mock_comment_inserted),
+        delete_comment=AsyncMock(side_effect=GenericError),
+    ):
+        result = await client.delete(
+            f"{admin_url}{comments_url}/{mock_comment_inserted.id}",
+            headers={
+                "Authorization": f"Bearer {jwt}",
+                "User-Agent": user_agent,
+            },
+        )
+
+        assert result.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert result.json() == {"detail": "Generic Error"}
+
+    app.dependency_overrides.clear()
