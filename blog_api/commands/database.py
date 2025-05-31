@@ -1,5 +1,4 @@
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from sqlalchemy import inspect
@@ -19,7 +18,8 @@ def get_table_names(sync_conn):
 
 
 @asynccontextmanager
-async def database_init_lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+async def database_init_lifespan(app: FastAPI):
+    # fix return type of this function
     async with engine.begin() as conn:
         existing_tables = await conn.run_sync(get_table_names)
         all_tables = BaseModel.metadata.tables.keys()
