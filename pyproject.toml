@@ -30,3 +30,5 @@ filterwarnings = [
 ]
 asyncio_mode = "auto"
 env_files = [".env.test"]
+[project.scripts]
+blog = "blog_api.commands.cmd:app"
