@@ -1,11 +1,14 @@
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
+
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     create_async_engine,
 )
 from sqlalchemy.orm import sessionmaker
+
 from blog_api.core.config import get_settings
-from typing import AsyncGenerator
 
 settings = get_settings()
 
@@ -16,6 +19,7 @@ async_session: AsyncSession = sessionmaker(
 )
 
 
+@asynccontextmanager
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         yield session
