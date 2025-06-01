@@ -2,8 +2,10 @@ import asyncio
 from enum import Enum
 from uuid import UUID
 
+import uvicorn
 from typer import Exit, Typer, echo
 
+from blog_api.commands.app import app
 from blog_api.commands.database import cli_update_user_role
 
 app_cli = Typer()
@@ -27,3 +29,9 @@ def update_role(user_id: UUID, role: Role):
     except Exception as e:
         echo(f"Error: {e}")
         raise Exit(code=1)
+
+
+@app_cli.command()
+def run(host: str = "127.0.0.1", port: int = 8000):
+    "Run blog API"
+    uvicorn.run(app, host=host, port=port, reload=True)
