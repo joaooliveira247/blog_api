@@ -6,7 +6,7 @@ from typer import Exit, Typer, echo
 
 from blog_api.commands.database import cli_update_user_role
 
-app = Typer()
+app_cli = Typer()
 
 
 class Role(str, Enum):
@@ -15,7 +15,7 @@ class Role(str, Enum):
     user = "user"
 
 
-@app.command()
+@app_cli.command()
 def update_role(user_id: UUID, role: Role):
     """
     Change user Role.
