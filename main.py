@@ -1,5 +1,8 @@
+from blog_api.commands.cmd import app_cli
+
+
 def main() -> None:
-    return
+    app_cli()
 
 
 if __name__ == "__main__":
