@@ -22,5 +22,22 @@ services:
     ports:
       - "6379:6379"
 
+  backend:
+    restart: "no"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - /app/.venv
+    networks:
+      - blog_api_network
+    build:
+      context: .
+    command:
+      - uv
+      - run
+      - main.py
+      - run
+
 networks:
   blog_api_network:
