@@ -38,6 +38,7 @@ services:
       - run
       - main.py
       - run
+      - "--host=0.0.0.0"
 
 networks:
   blog_api_network:
