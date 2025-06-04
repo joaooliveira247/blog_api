@@ -19,7 +19,12 @@ async_session: AsyncSession = sessionmaker(
 )
 
 
-@asynccontextmanager
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session() as session:
+        yield session
+
+
+@asynccontextmanager
+async def get_context_session() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         yield session

@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from sqlalchemy import inspect, update
 
 from blog_api.contrib.models import BaseModel
-from blog_api.core.database import engine, get_session
+from blog_api.core.database import engine, get_context_session
 from blog_api.models import (  # noqa: F401  # pylint: disable=unused-import
     comments,
     posts,
@@ -38,7 +38,7 @@ async def database_init_lifespan(app: FastAPI):
 
 
 async def cli_update_user_role(user_id: UUID, role: str) -> None:
-    async with get_session() as conn:
+    async with get_context_session() as conn:
         await conn.execute(
             update(UserModel).where(UserModel.id == user_id).values(role=role)
         )
