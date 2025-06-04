@@ -34,4 +34,4 @@ def update_role(user_id: UUID, role: Role):
 @app_cli.command()
 def run(host: str = "127.0.0.1", port: int = 8000):
     "Run blog API"
-    uvicorn.run(app, host=host, port=port, reload=True)
+    uvicorn.run(app, host=host, port=port)
