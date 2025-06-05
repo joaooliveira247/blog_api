@@ -1,13 +1,19 @@
-from typing import Literal
-from pydantic import BaseModel, Field, EmailStr, field_validator
 import re
+from typing import Literal
+
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from blog_api.contrib.schemas import OutMixin
+from blog_api.core.security import gen_hash
 
 
 class BaseUser(BaseModel):
-    username: str = Field(..., description="Username", min_length=3, max_length=255)
-    email: EmailStr = Field(..., description="User Email", min_length=5, max_length=255)
+    username: str = Field(
+        ..., description="Username", min_length=3, max_length=255
+    )
+    email: EmailStr = Field(
+        ..., description="User Email", min_length=5, max_length=255
+    )
 
 
 class PasswordMixin(BaseModel):
@@ -29,14 +35,21 @@ class PasswordMixin(BaseModel):
             for key, regex in pattern.items()
         }
 
-        missing_components = [key for key, value in components.items() if value is None]
+        missing_components = [
+            key for key, value in components.items() if value is None
+        ]
 
         if missing_components:
             raise ValueError(
                 f"Wrong password format! characters missing: {', '.join(missing_components)}"
             )
 
-        return value
+        try:
+            hash_password = gen_hash(value)
+            return hash_password
+
+        except ValueError as e:
+            raise e
 
 
 class UserIn(BaseUser, PasswordMixin): ...
