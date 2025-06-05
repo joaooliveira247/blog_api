@@ -4,7 +4,6 @@ from typing import Literal
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from blog_api.contrib.schemas import OutMixin
-from blog_api.core.security import gen_hash
 
 
 class BaseUser(BaseModel):
@@ -44,12 +43,7 @@ class PasswordMixin(BaseModel):
                 f"Wrong password format! characters missing: {', '.join(missing_components)}"
             )
 
-        try:
-            hash_password = gen_hash(value)
-            return hash_password
-
-        except ValueError as e:
-            raise e
+        return value
 
 
 class UserIn(BaseUser, PasswordMixin): ...
