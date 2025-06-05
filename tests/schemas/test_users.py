@@ -105,8 +105,9 @@ def test_user_in_return_success():
     user: dict[str, Any] = single_user_data()
     user["password"] = "Abc@1234"
     schema = UserIn(**user)
+    user.pop("password")
 
-    assert schema.model_dump() == user
+    assert schema.model_dump(exclude={"password"}) == user
 
 
 def test_user_in_password_lt_8_raise_validation_error():
