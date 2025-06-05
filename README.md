@@ -57,4 +57,18 @@ uv sync --all-groups
 
 </details>
 
+### ▶️ Commands
+
+```bash
+uv run main.py update-role <user_id> <role(admin|dev|user)>
+```
+
+This command updates a user's role from the CLI. Updating a role via the API is only allowed if your role is admin.
+
+```
+uv run main.py run --host=<(optional|default=127.0.0.1)> --port=<(optional|default=8000)>
+```
+
+This command starts the API.
+
 ## 🐍 Usage libraries:
