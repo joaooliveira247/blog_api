@@ -72,3 +72,23 @@ uv run main.py run --host=<(optional|default=127.0.0.1)> --port=<(optional|defau
 This command starts the API.
 
 ## 🐍 Usage libraries:
+
+- [asyncpg >=0.30.0](https://pypi.org/project/asyncpg/)
+- [email-validator >=2.2.0](https://pypi.org/project/email-validator/)
+- [faker >=36.1.1](https://pypi.org/project/faker/)
+- [fastapi >=0.115.8](https://pypi.org/project/fastapi/)
+- [fastapi-pagination >=0.13.0](https://pypi.org/project/fastapi-pagination/)
+- [httpx >=0.28.1](https://pypi.org/project/httpx/)
+- [passlib[bcrypt] >=1.7.4](https://pypi.org/project/passlib/)
+- [pre-commit >=4.1.0](https://pypi.org/project/pre-commit/)
+- [pydantic >=2.10.6](https://pypi.org/project/pydantic/)
+- [pydantic-settings >=2.7.1](https://pypi.org/project/pydantic-settings/)
+- [pytest >=8.3.4](https://pypi.org/project/pytest/)
+- [pytest-asyncio >=0.25.3](https://pypi.org/project/pytest-asyncio/)
+- [pytest-dotenv >=0.5.2](https://pypi.org/project/pytest-dotenv/)
+- [python-jose >=3.5.0](https://pypi.org/project/python-jose/)
+- [python-multipart >=0.0.20](https://pypi.org/project/python-multipart/)
+- [redis >=5.2.1](https://pypi.org/project/redis/)
+- [sqlalchemy[mypy] >=2.0.38](https://pypi.org/project/sqlalchemy/)
+- [typer >=0.16.0](https://pypi.org/project/typer/)
+- [uvicorn[standard] >=0.34.3](https://pypi.org/project/uvicorn/)
