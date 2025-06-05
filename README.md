@@ -46,7 +46,7 @@ uv sync --all-groups
 
 > **__Warning:__**
 >
-> Please remember to configure the `.env` file.
+> Please remember to configure the `.env` file. [.env example file](./.env.example)
 
 ## 📜 Documentation:
 
