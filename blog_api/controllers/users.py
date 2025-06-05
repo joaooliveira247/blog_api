@@ -112,10 +112,16 @@ async def update_password(
                 detail="New password cannot be the same as current password",
             )
 
-        await repository.update_user_password(user.id, form.password)
+        hash_password = gen_hash(form.password)
+
+        await repository.update_user_password(user.id, hash_password)
 
         return None
 
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+        )
     except (DatabaseError, UnableUpdateEntity) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=e.message
